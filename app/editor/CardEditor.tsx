@@ -4,10 +4,11 @@ import { useState, type CSSProperties } from "react";
 import ModalPreview from "@/app/components/ModalPreview";
 import Toolbar from "@/app/components/Toolbar";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
-import  { CARD_DESIGNS, type DesignKey }  from "@/shared/design"
+import { CARD_DESIGNS, type DesignKey } from "@/shared/design";
+
 
 function getCardStyle(design: DesignKey): CSSProperties {
-    const conf = CARD_DESIGNS[design];
+  const conf = CARD_DESIGNS[design];
 
   if (!conf.image) {
     return { backgroundColor: conf.bgColor };
@@ -30,8 +31,19 @@ export default function CardEditor() {
   const [isPreview, setIsPreview] = useState(false);
   const [design, setDesign] = useState<DesignKey>("plain");
 
-  const { blocks, updateText, handleMouseDown, cardRef, blockRefs, downloadImage } =
-    useCardBlocks();
+  const CARD_W = 480;
+
+  const scale =
+    typeof window !== "undefined" ? Math.min(window.innerWidth / CARD_W, 1) : 1;
+
+  const {
+    blocks,
+    updateText,
+    handleMouseDown,
+    cardRef,
+    blockRefs,
+    downloadImage,
+  } = useCardBlocks();
 
   return (
     <div className="flex min-h-screen w-full font-sans dark:bg-black">
@@ -60,35 +72,52 @@ export default function CardEditor() {
               <p className="mt-4 text-sm text-zinc-600">
                 裏面（テキスト編集・ドラッグ可能）
               </p>
-
+              {/* B：見た目サイズ枠（レスポンシブで縮む） */}
               <div
-                ref={cardRef}
-                style={getCardStyle(design)}
-                className="relative w-[480px] h-[260px] rounded-xl border shadow-md overflow-hidden"
+                className="relative w-full max-w-[480px]"
+                style={{ aspectRatio: "480 / 260" }}
               >
-                {blocks.map((block) => (
-                  <div
-                    key={block.id}
-                    ref={(el) => {
-                      blockRefs.current[block.id] = el;
-                    }}
-                    onMouseDown={(e) =>
-                      handleMouseDown(e, block.id, { disabled: isPreview })
-                    }
-                    style={{
-                      top: block.y,
-                      left: block.x,
-                      cursor: isPreview ? "default" : "move",
-                    }}
-                    className={`absolute select-none whitespace-nowrap text-zinc-900 dark:text-zinc-50 ${
-                      block.fontWeight === "bold" ? "font-bold" : "font-normal"
-                    }`}
-                  >
-                    <span style={{ fontSize: `${block.fontSize}px` }}>
-                      {block.text}
-                    </span>
-                  </div>
-                ))}
+                {/* C：実寸カード（480×260）を scale して載せる */}
+                <div
+                  ref={cardRef}
+                  style={{
+                    width: 480,
+                    height: 260,
+                    transform: `scale(${scale})`,
+                    transformOrigin: "top left",
+                    ...getCardStyle(design),
+                  }}
+                  className="absolute top-0 left-0 rounded-xl border shadow-md overflow-hidden"
+                >
+                  {blocks.map((block) => (
+                    <div
+                      key={block.id}
+                      ref={(el) => {
+                        blockRefs.current[block.id] = el;
+                      }}
+                      onMouseDown={(e) =>
+                        handleMouseDown(e, block.id, {
+                          disabled: isPreview,
+                          scale,
+                        })
+                      }
+                      style={{
+                        top: block.y,
+                        left: block.x,
+                        cursor: isPreview ? "default" : "move",
+                      }}
+                      className={`absolute select-none whitespace-nowrap text-zinc-900 dark:text-zinc-50 ${
+                        block.fontWeight === "bold"
+                          ? "font-bold"
+                          : "font-normal"
+                      }`}
+                    >
+                      <span style={{ fontSize: `${block.fontSize}px` }}>
+                        {block.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <p className="text-xs text-zinc-500">

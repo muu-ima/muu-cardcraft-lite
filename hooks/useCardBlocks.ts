@@ -3,6 +3,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
+type DragOptions = {
+  disabled?: boolean;
+  scale?: number;
+};
+
 export type Block = {
   id: string;
   text: string;
@@ -80,24 +85,32 @@ export function useCardBlocks() {
 
   // マウスダウン開始
   const handleMouseDown = (
-    e: React.MouseEvent<HTMLDivElement>,
+    e: React.MouseEvent,
     id: string,
-    options?: { disabled?: boolean }
+    options?: DragOptions
   ) => {
     if (options?.disabled) return;
-    if (!cardRef.current) return;
+
+    const scale = options?.scale ?? 1;
 
     e.preventDefault();
     setDragTargetId(id);
     setIsDragging(true);
 
-    const cardRect = cardRef.current.getBoundingClientRect();
+    const el = cardRef.current;
+    if (!el) return;
+
+    const cardRect = el.getBoundingClientRect();
     const block = blocks.find((b) => b.id === id);
     if (!block) return;
 
+    // 画面上のマウス座標 → カード内の論理座標(480x260基準)に変換
+    const pointerX = (e.clientX - cardRect.left) / scale;
+    const pointerY = (e.clientY - cardRect.top) / scale;
+
     setOffset({
-      x: e.clientX - cardRect.left - block.x,
-      y: e.clientY - cardRect.top - block.y,
+      x: pointerX - block.x,
+      y: pointerY - block.y,
     });
   };
 
