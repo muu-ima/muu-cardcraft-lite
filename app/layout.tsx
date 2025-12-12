@@ -14,9 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body className="min-h-screen bg-slate-100 text-gray-900">
+      <body className="min-h-screen  text-gray-900">
         {/* 共通ヘッダー */}
-        <header className="w-full border-b bg-white">
+        <header className="w-full border-b ">
           <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">
             <div className="font-bold">
               <span className="text-pink-500">Cocco</span> CardCraft
@@ -28,13 +28,13 @@ export default function RootLayout({
           </div>
         </header>
 
-        {/* コンテンツ */}
-        <main className="max-w-5xl mx-auto px-4 py-6">
+        {/* コンテンツ：ここは全幅にする */}
+        <main className="w-full rounded-xl shadow-sm  px-8">
           {children}
         </main>
 
         {/* 共通フッター */}
-        <footer className="w-full border-t bg-white mt-8">
+        <footer className="w-full  mt-8">
           <div className="max-w-5xl mx-auto px-4 py-3 text-xs text-center text-gray-500">
             © {new Date().getFullYear()} Cocco Neil. All rights reserved.
           </div>
