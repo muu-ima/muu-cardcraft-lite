@@ -1,25 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import ModalPreview from "@/app/components/ModalPreview";
-import { useCardBlocks } from "@/hooks/useCardBlocks";
 import Toolbar from "@/app/components/Toolbar";
+import { DesignKey, useCardBlocks } from "@/hooks/useCardBlocks";
 
-export default function Home() {
-  const {
-    blocks,
-    updateText,
-    handleMouseDown,
-    cardRef,
-    blockRefs,
-    downloadImage,
-  } = useCardBlocks();
+function getCardStyle(design: DesignKey): CSSProperties {
+  switch (design) {
+    case "girl":
+      return {
+        backgroundImage: 'url("/girl.png")',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      };
+    case "kinmokusei":
+      return {
+        backgroundImage: 'url("/kinmokusei.png")',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      };
+    case "usaCarrot":
+      return {
+        backgroundImage: 'url("/usa-carrot.png")',
+        backgroundSize: "contain",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+        backgroundColor: "#ffffff",
+      };
+    case "plain":
+    default:
+      return { backgroundColor: "#e2c7a3" };
+  }
+}
 
-  const [activeTab, setActiveTab] = useState<"text" | "font" | "export">(
-    "text"
-  );
+export default function CardEditor() {
+  const [activeTab, setActiveTab] = useState<
+    "text" | "font" | "design" | "export"
+  >("text");
   const [fontFamily, setFontFamily] = useState("default");
   const [isPreview, setIsPreview] = useState(false);
+  const [design, setDesign] = useState<DesignKey>("plain");
+
+  const { blocks, updateText, handleMouseDown, cardRef, blockRefs, downloadImage } =
+    useCardBlocks();
 
   return (
     <div className="flex min-h-screen w-full font-sans dark:bg-black">
@@ -51,7 +74,8 @@ export default function Home() {
 
               <div
                 ref={cardRef}
-                className="relative w-[480px] h-[260px] rounded-xl border bg-[#e2c7a3] shadow-md dark:bg-neutral-800 overflow-hidden"
+                style={getCardStyle(design)}
+                className="relative w-[480px] h-[260px] rounded-xl border shadow-md overflow-hidden"
               >
                 {blocks.map((block) => (
                   <div
@@ -59,7 +83,9 @@ export default function Home() {
                     ref={(el) => {
                       blockRefs.current[block.id] = el;
                     }}
-                    onMouseDown={(e) => handleMouseDown(e, block.id)}
+                    onMouseDown={(e) =>
+                      handleMouseDown(e, block.id, { disabled: isPreview })
+                    }
                     style={{
                       top: block.y,
                       left: block.x,
@@ -69,11 +95,7 @@ export default function Home() {
                       block.fontWeight === "bold" ? "font-bold" : "font-normal"
                     }`}
                   >
-                    <span
-                      style={{
-                        fontSize: `${block.fontSize}px`,
-                      }}
-                    >
+                    <span style={{ fontSize: `${block.fontSize}px` }}>
                       {block.text}
                     </span>
                   </div>
@@ -115,6 +137,16 @@ export default function Home() {
                 フォント
               </button>
               <button
+                onClick={() => setActiveTab("design")}
+                className={`px-4 py-2 border-b-2 -mb-px ${
+                  activeTab === "design"
+                    ? "border-blue-600 text-blue-600 font-semibold"
+                    : "border-transparent text-zinc-500 hover:text-zinc-700"
+                }`}
+              >
+                カード背景
+              </button>
+              <button
                 onClick={() => setActiveTab("export")}
                 className={`px-4 py-2 border-b-2 -mb-px ${
                   activeTab === "export"
@@ -126,7 +158,7 @@ export default function Home() {
               </button>
             </div>
 
-            {/* タブ中身 */}
+            {/* テキストタブ */}
             {activeTab === "text" && (
               <div className="space-y-4 pt-2">
                 {blocks.map((block, index) => (
@@ -152,26 +184,56 @@ export default function Home() {
               </div>
             )}
 
-            {activeTab === "font" && (
-              <div className="space-y-4 pt-4">
-                <p className="text-sm text-zinc-600">
-                  フォントはあとでキャンバス描画にも反映させましょう。
-                </p>
-                <label className="text-sm text-zinc-700 dark:text-zinc-200">
-                  フォント
-                </label>
-                <select
-                  value={fontFamily}
-                  onChange={(e) => setFontFamily(e.target.value)}
-                  className="mt-1 w-full rounded border px-3 py-2 text-sm dark:bg-neutral-800 dark:text-zinc-50"
-                >
-                  <option value="default">デフォルト</option>
-                  <option value="Zen Maru Gothic">Zen Maru Gothic</option>
-                  <option value="Noto Sans JP">Noto Sans JP</option>
-                </select>
+            {/* デザインタブ（例） */}
+            {activeTab === "design" && (
+              <div className="space-y-3 pt-4 text-sm">
+                <p>カードの背景デザインを選択してください。</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setDesign("plain")}
+                    className={`rounded border px-3 py-2 ${
+                      design === "plain"
+                        ? "border-blue-500 bg-blue-50"
+                        : "hover:bg-zinc-100"
+                    }`}
+                  >
+                    シンプル
+                  </button>
+                  <button
+                    onClick={() => setDesign("girl")}
+                    className={`rounded border px-3 py-2 ${
+                      design === "girl"
+                        ? "border-blue-500 bg-blue-50"
+                        : "hover:bg-zinc-100"
+                    }`}
+                  >
+                    女の子イラスト
+                  </button>
+                  <button
+                    onClick={() => setDesign("kinmokusei")}
+                    className={`rounded border px-3 py-2 ${
+                      design === "kinmokusei"
+                        ? "border-blue-500 bg-blue-50"
+                        : "hover:bg-zinc-100"
+                    }`}
+                  >
+                    金木犀
+                  </button>
+                  <button
+                    onClick={() => setDesign("usaCarrot")}
+                    className={`rounded border px-3 py-2 ${
+                      design === "usaCarrot"
+                        ? "border-blue-500 bg-blue-50"
+                        : "hover:bg-zinc-100"
+                    }`}
+                  >
+                    うさぎ＆にんじん
+                  </button>
+                </div>
               </div>
             )}
 
+            {/* フォント・書き出しタブは今のままでOK（downloadImage はそのまま使って大丈夫） */}
             {activeTab === "export" && (
               <div className="space-y-4 pt-4">
                 <p className="text-sm text-zinc-600">
@@ -179,13 +241,13 @@ export default function Home() {
                 </p>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => downloadImage("png")}
+                    onClick={() => downloadImage("png", design)}
                     className="flex-1 rounded-full bg-blue-600 px-4 py-2 text-white text-sm"
                   >
                     裏面をPNGダウンロード
                   </button>
                   <button
-                    onClick={() => downloadImage("jpeg")}
+                    onClick={() => downloadImage("jpeg", design)}
                     className="flex-1 rounded-full bg-emerald-600 px-4 py-2 text-white text-sm"
                   >
                     裏面をJPEGダウンロード
@@ -197,29 +259,25 @@ export default function Home() {
         </main>
       </div>
 
-      {/* 🔍 プレビューモーダル */}
+      {/* プレビューモーダル */}
       <ModalPreview
         open={isPreview}
         onClose={() => setIsPreview(false)}
         title="名刺プレビュー（裏面）"
       >
-        <div className="relative w-[480px] h-[260px] rounded-xl border bg-[#e2c7a3] shadow-md dark:bg-neutral-800 overflow-hidden">
+        <div
+          style={getCardStyle(design)}
+          className="relative w-[480px] h-[260px] rounded-xl border shadow-md overflow-hidden"
+        >
           {blocks.map((block) => (
             <div
               key={block.id}
-              style={{
-                top: block.y,
-                left: block.x,
-              }}
+              style={{ top: block.y, left: block.x }}
               className={`absolute select-none whitespace-nowrap text-zinc-900 dark:text-zinc-50 ${
                 block.fontWeight === "bold" ? "font-bold" : "font-normal"
               }`}
             >
-              <span
-                style={{
-                  fontSize: `${block.fontSize}px`,
-                }}
-              >
+              <span style={{ fontSize: `${block.fontSize}px` }}>
                 {block.text}
               </span>
             </div>

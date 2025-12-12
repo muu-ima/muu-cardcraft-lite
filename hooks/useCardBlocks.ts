@@ -1,6 +1,7 @@
+// hooks/useCardBlocks.ts
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type Block = {
   id: string;
@@ -11,7 +12,10 @@ export type Block = {
   fontWeight: "normal" | "bold";
 };
 
+export type DesignKey = "plain" | "girl" | "kinmokusei" | "usaCarrot";
+
 export function useCardBlocks() {
+  // 初期ブロック
   const [blocks, setBlocks] = useState<Block[]>([
     {
       id: "name",
@@ -31,12 +35,14 @@ export function useCardBlocks() {
     },
   ]);
 
+  // ドラッグ状態
   const [isDragging, setIsDragging] = useState(false);
-  const [daragTargetId, setDragTargetId] = useState<string | null>(null);
+  const [dragTargetId, setDragTargetId] = useState<string | null>(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
+  // カードと各ブロックの DOM
   const cardRef = useRef<HTMLDivElement | null>(null);
-const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // テキスト変更
   const updateText = (id: string, text: string) => {
@@ -44,7 +50,12 @@ const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
   };
 
   // マウスダウン開始
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>, id: string) => {
+  const handleMouseDown = (
+    e: React.MouseEvent<HTMLDivElement>,
+    id: string,
+    options?: { disabled?: boolean }
+  ) => {
+    if (options?.disabled) return;
     if (!cardRef.current) return;
 
     e.preventDefault();
@@ -61,13 +72,14 @@ const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
     });
   };
 
-  // ドラッグ移動
+  // ドラッグ中の座標更新
   useEffect(() => {
     const handleMove = (e: MouseEvent) => {
-      if (!isDragging || !daragTargetId || !cardRef.current) return;
+      if (!isDragging || !dragTargetId || !cardRef.current) return;
 
       const cardRect = cardRef.current.getBoundingClientRect();
-      const targetEl = blockRefs.current[daragTargetId];
+      const targetEl = blockRefs.current[dragTargetId];
+
       if (!targetEl) return;
 
       const textRect = targetEl.getBoundingClientRect();
@@ -83,7 +95,7 @@ const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
       setBlocks((prev) =>
         prev.map((b) =>
-          b.id === daragTargetId ? { ...b, x: newX, y: newY } : b
+          b.id === dragTargetId ? { ...b, x: newX, y: newY } : b
         )
       );
     };
@@ -93,52 +105,75 @@ const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
       setDragTargetId(null);
     };
 
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleUp);
     return () => {
-      window.addEventListener("mousemove", handleMove);
-      window.addEventListener("mouseup", handleUp);
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleUp);
     };
-  }, [isDragging, daragTargetId, offset]);
+  }, [isDragging, dragTargetId, offset]);
 
-    // PNG / JPEG 書き出し
-    const downloadImage = async (format: "png" | "jpeg") => {
-        if(!cardRef.current)  return;
+  // 画像書き出し（背景色だけ拾う簡易版）
+  const downloadImage = async (format: "png" | "jpeg", design: DesignKey) => {
+    if (!cardRef.current) return;
 
-        const canvas = document.createElement("canvas");
-        canvas.width = 400 * 2;
-        canvas.height = 260 * 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = 480 * 2;
+    canvas.height = 260 * 2;
 
-        const ctx = canvas.getContext("2d")!;
-        ctx.scale(2, 2);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-        const rect = cardRef.current.getBoundingClientRect();
-        const style = window.getComputedStyle(cardRef.current);
+    ctx.scale(2, 2);
 
-        ctx.fillStyle = style.backgroundColor || "#ffffff";
-        ctx.fillRect(0,0, rect.width, rect.height);
-
-        blocks.forEach((b) => {
-            const fontBase = `${b.fontSize}px sans-serif`;
-            ctx.font = b.fontWeight === "bold" ? `bold${fontBase}` : fontBase;
-            ctx.fillStyle = "#1a1a1a";
-            ctx.fillText(b.text, b.x, b.y + b.fontSize);
-        });
-
-        const link = document.createElement("a");
-        link.download = `card.${format}`;
-        link.href = 
-            format === "png"
-                ? canvas.toDataURL("image/png")
-                : canvas.toDataURL("iamge/jpeg", 0.92);
-                link.click();
-    };
-
-    return {
-        blocks,
-        setBlocks,
-        updateText,
-        handleMouseDown,
-        cardRef,
-        blockRefs,
-        downloadImage,
+       // 背景を design に合わせて塗る
+    switch (design) {
+      case "girl":
+        // girl は画像なので、fillRect だけだとダメで
+        // 本気でやるなら Image を読んで drawImage する。
+        // とりあえず今はカードの背景色だけ合わせるならこんな感じ
+        ctx.fillStyle = "#bfc7d0"; // girl 背景のグレー
+        break;
+      case "kinmokusei":
+        ctx.fillStyle = "#fff5e5"; // ざっくりの色
+        break;
+      case "usaCarrot":
+        ctx.fillStyle = "#ffffff";
+        break;
+      case "plain":
+      default:
+        ctx.fillStyle = "#e2c7a3";
+        break;
     }
+
+    const rect = cardRef.current.getBoundingClientRect();
+    const style = window.getComputedStyle(cardRef.current);
+
+    ctx.fillStyle = style.backgroundColor || "#ffffff";
+    ctx.fillRect(0, 0, rect.width, rect.height);
+
+    blocks.forEach((b) => {
+      const base = `${b.fontSize}px sans-serif`;
+      ctx.font = b.fontWeight === "bold" ? `bold ${base}` : base;
+      ctx.fillStyle = "#1a1a1a";
+      ctx.fillText(b.text, b.x, b.y + b.fontSize);
+    });
+
+    const link = document.createElement("a");
+    link.download = `card.${format}`;
+    link.href =
+      format === "png"
+        ? canvas.toDataURL("image/png")
+        : canvas.toDataURL("image/jpeg", 0.92);
+    link.click();
+  };
+
+  return {
+    blocks,
+    updateText,
+    handleMouseDown,
+    cardRef,
+    blockRefs,
+    downloadImage,
+  };
 }
