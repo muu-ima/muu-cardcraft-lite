@@ -14,8 +14,8 @@ export default function Home() {
   const [text2, setText2] = useState("デザイナー / Designer");
 
   // 位置
-  const [pos1, setPos1] = useState({ x: 100, y: 80 });
-  const [pos2, setPos2] = useState({ x: 100, y: 120 });
+  const [pos1, setPos1] = useState({ x: 100, y: 120 });
+  const [pos2, setPos2] = useState({ x: 100, y: 80 });
 
   // ドラッグ
   const [isDragging, setIsDragging] = useState(false);
@@ -27,6 +27,10 @@ export default function Home() {
 
   // 裏面カード用の ref（ダウンロード対象）
   const cardRef = useRef<HTMLDivElement | null>(null);
+
+  // テキスト要素の幅を測るための ref
+  const text1Ref = useRef<HTMLDivElement | null>(null);
+  const text2Ref = useRef<HTMLDivElement | null>(null);
 
   const handleMouseDown = (
     e: React.MouseEvent<HTMLDivElement>,
@@ -51,12 +55,30 @@ export default function Home() {
     const handleMove = (e: MouseEvent) => {
       if (!isDragging || !dragTarget || !cardRef.current) return;
 
-      const rect = cardRef.current.getBoundingClientRect();
-      const offsetX = e.clientX - rect.left - offset.x;
-      const offsetY = e.clientY - rect.top - offset.y;
+      const cardRect = cardRef.current.getBoundingClientRect();
 
-      const newX = Math.max(0, Math.min(rect.width - 20, offsetX));
-      const newY = Math.max(0, Math.min(rect.height - 20, offsetY));
+      // どちらのテキストを操作しているか判定
+      const targetEl =
+        dragTarget === "text1" ? text1Ref.current : text2Ref.current;
+
+      if (!targetEl) return;
+
+      const textRect = targetEl.getBoundingClientRect();
+      const textWidth = textRect.width;
+
+      // 移動後のX座標
+      const rawX = e.clientX - cardRect.left - offset.x;
+
+      // 右端の制限値（カード幅 - テキスト幅）
+      const maxX = cardRect.width - textWidth;
+
+      // カード内に収まるよう制限
+      const newX = Math.max(0, Math.min(maxX, rawX));
+
+      // Y軸（今回は制限そのまま）
+      const rawY = e.clientY - cardRect.top - offset.y;
+      const maxY = cardRect.height - 20;
+      const newY = Math.max(0, Math.min(maxY, rawY));
 
       if (dragTarget === "text1") {
         setPos1({ x: newX, y: newY });
@@ -72,6 +94,7 @@ export default function Home() {
 
     window.addEventListener("mousemove", handleMove);
     window.addEventListener("mouseup", handleUp);
+
     return () => {
       window.removeEventListener("mousemove", handleMove);
       window.removeEventListener("mouseup", handleUp);
@@ -96,14 +119,14 @@ export default function Home() {
     ctx.fillStyle = style.backgroundColor || "#ffffff";
     ctx.fillRect(0, 0, rect.width, rect.height);
 
-    // テキスト1
+    // 肩書き（上の行）← text2
     ctx.font = "bold 24px sans-serif";
     ctx.fillStyle = "#1a1a1a";
-    ctx.fillText(text1, pos1.x, pos1.y + 24);
+    ctx.fillText(text1, pos1.x, pos1.y + 18);
 
     // テキスト2
-    ctx.font = "18px sans-serif";
-    ctx.fillText(text2, pos2.x, pos2.y + 18);
+    ctx.font = "bold 24px sans-serif";
+    ctx.fillText(text2, pos2.x, pos2.y + 24);
 
     const link = document.createElement("a");
     link.download = `card.${format}`;
@@ -150,30 +173,32 @@ export default function Home() {
               {/* 裏面カード：編集対象 */}
               <div
                 ref={cardRef}
-                className="relative w-[480px] h-[260px] rounded-xl border bg-[#e2c7a3] shadow-md dark:bg-neutral-800"
+                className="relative w-[480px] h-[260px] rounded-xl border bg-[#e2c7a3] shadow-md dark:bg-neutral-800 overflow-hidden"
               >
                 {/* テキスト1 */}
                 <div
+                  ref={text1Ref}
                   onMouseDown={(e) => handleMouseDown(e, "text1")}
                   style={{
                     top: pos1.y,
                     left: pos1.x,
                     cursor: isPreview ? "default" : "move",
                   }}
-                  className="absolute text-xl font-bold text-zinc-900 dark:text-zinc-50 select-none"
+                  className="absolute text-xl font-bold text-zinc-900 dark:text-zinc-50 select-none whitespace-nowrap"
                 >
                   {text1}
                 </div>
 
                 {/* テキスト2 */}
                 <div
+                  ref={text2Ref}
                   onMouseDown={(e) => handleMouseDown(e, "text2")}
                   style={{
                     top: pos2.y,
                     left: pos2.x,
                     cursor: isPreview ? "default" : "move",
                   }}
-                  className="absolute text-lg text-zinc-900 dark:text-zinc-50 select-none"
+                  className="absolute text-lg text-zinc-900 dark:text-zinc-50 select-none whitespace-nowrap"
                 >
                   {text2}
                 </div>
