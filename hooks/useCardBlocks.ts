@@ -199,13 +199,16 @@ export function useCardBlocks() {
     ctx.drawImage(img, dx, dy, drawW, drawH);
   };
 
+  const EXPORT_W = 480;
+  const EXPORT_H = 260;
+
   // 画像書き出し
   const downloadImage = async (format: "png" | "jpeg", design: DesignKey) => {
-    if (!cardRef.current) return;
+    // cardRef の存在チェックは不要でもいいが、残してOK
+    // if (!cardRef.current) return;
 
-    const rect = cardRef.current.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
+    const width = EXPORT_W;
+    const height = EXPORT_H;
 
     const canvas = document.createElement("canvas");
     canvas.width = width * 2;
@@ -214,16 +217,13 @@ export function useCardBlocks() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Retina 対応で 2 倍スケール
     ctx.scale(2, 2);
 
     const conf = CARD_DESIGNS[design];
 
-    // 背景色
     ctx.fillStyle = conf.bgColor;
     ctx.fillRect(0, 0, width, height);
 
-    // 背景画像がある場合は描画
     if (conf.image) {
       try {
         const img = await loadImage(conf.image);
@@ -233,7 +233,6 @@ export function useCardBlocks() {
       }
     }
 
-    // テキストブロックを描画
     blocks.forEach((b) => {
       const base = `${b.fontSize}px sans-serif`;
       ctx.font = b.fontWeight === "bold" ? `bold ${base}` : base;
