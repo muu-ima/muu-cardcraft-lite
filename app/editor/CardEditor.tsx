@@ -3,34 +3,23 @@
 import { useState, type CSSProperties } from "react";
 import ModalPreview from "@/app/components/ModalPreview";
 import Toolbar from "@/app/components/Toolbar";
-import { DesignKey, useCardBlocks } from "@/hooks/useCardBlocks";
+import { useCardBlocks } from "@/hooks/useCardBlocks";
+import  { CARD_DESIGNS, type DesignKey }  from "@/shared/design"
 
 function getCardStyle(design: DesignKey): CSSProperties {
-  switch (design) {
-    case "girl":
-      return {
-        backgroundImage: 'url("/girl.png")',
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      };
-    case "kinmokusei":
-      return {
-        backgroundImage: 'url("/kinmokusei.png")',
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      };
-    case "usaCarrot":
-      return {
-        backgroundImage: 'url("/usa-carrot.png")',
-        backgroundSize: "contain",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
-        backgroundColor: "#ffffff",
-      };
-    case "plain":
-    default:
-      return { backgroundColor: "#e2c7a3" };
+    const conf = CARD_DESIGNS[design];
+
+  if (!conf.image) {
+    return { backgroundColor: conf.bgColor };
   }
+
+  return {
+    backgroundImage: `url("${conf.image}")`,
+    backgroundSize: conf.mode === "contain" ? "contain" : "cover",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center",
+    backgroundColor: conf.bgColor,
+  };
 }
 
 export default function CardEditor() {
