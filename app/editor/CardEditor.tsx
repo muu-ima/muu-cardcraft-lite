@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import ModalPreview from "@/app/components/ModalPreview";
 import Toolbar from "@/app/components/Toolbar";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
 import { CARD_DESIGNS, type DesignKey } from "@/shared/design";
-
 
 function getCardStyle(design: DesignKey): CSSProperties {
   const conf = CARD_DESIGNS[design];
@@ -33,8 +32,25 @@ export default function CardEditor() {
 
   const CARD_W = 480;
 
-  const scale =
-    typeof window !== "undefined" ? Math.min(window.innerWidth / CARD_W, 1) : 1;
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+
+    const update = () => {
+      const w = el.clientWidth; // ← “実際に表示できる幅”
+      setScale(Math.min(w / CARD_W, 1));
+    };
+
+    update();
+
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+
+    return () => ro.disconnect();
+  }, []);
 
   const {
     blocks,
@@ -58,7 +74,7 @@ export default function CardEditor() {
             <div className="space-y-6">
               <p className="text-sm text-zinc-600">表面（サンプル）</p>
 
-              <div className="relative w-[480px] h-[260px] rounded-xl border bg-[#e2c7a3] shadow-md flex items-center justify-center dark:bg-neutral-800">
+              <div className="relative w-full max-w-[480px] aspect-480/260 rounded-xl border bg-[#e2c7a3] shadow-md flex items-center justify-center dark:bg-neutral-800">
                 <div className="flex flex-col items-center gap-2">
                   <div className="w-10 h-10 rounded-full border border-zinc-900/40 dark:border-zinc-50/40 flex items-center justify-center text-xs">
                     Logo
@@ -74,6 +90,7 @@ export default function CardEditor() {
               </p>
               {/* B：見た目サイズ枠（レスポンシブで縮む） */}
               <div
+                ref={wrapRef}
                 className="relative w-full max-w-[480px]"
                 style={{ aspectRatio: "480 / 260" }}
               >
@@ -284,8 +301,8 @@ export default function CardEditor() {
         title="名刺プレビュー（裏面）"
       >
         <div
+          className="relative w-full max-w-[480px] aspect-480/260 rounded-xl border shadow-md overflow-hidden"
           style={getCardStyle(design)}
-          className="relative w-[480px] h-[260px] rounded-xl border shadow-md overflow-hidden"
         >
           {blocks.map((block) => (
             <div
