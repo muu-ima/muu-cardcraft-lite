@@ -1,26 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import ModalPreview from "@/app/components/ModalPreview";
 import Toolbar from "@/app/components/Toolbar";
+import CardSurface from "@/app/components/CardSurface";
+import ExportSurface from "@/app/components/ExportSurface";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
-import { CARD_DESIGNS, type DesignKey } from "@/shared/design";
+import { type DesignKey } from "@/shared/design";
 
-function getCardStyle(design: DesignKey): CSSProperties {
-  const conf = CARD_DESIGNS[design];
-
-  if (!conf.image) {
-    return { backgroundColor: conf.bgColor };
-  }
-
-  return {
-    backgroundImage: `url("${conf.image}")`,
-    backgroundSize: conf.mode === "contain" ? "contain" : "cover",
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "center",
-    backgroundColor: conf.bgColor ?? "#ffffff",
-  };
-}
 
 export default function CardEditor() {
   const [activeTab, setActiveTab] = useState<
@@ -32,6 +19,7 @@ export default function CardEditor() {
 
   const CARD_W = 480;
 
+  // ---- 編集側スケール
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [scale, setScale] = useState(1);
 
@@ -40,7 +28,7 @@ export default function CardEditor() {
     if (!el) return;
 
     const update = () => {
-      const w = el.clientWidth; // ← “実際に表示できる幅”
+      const w = el.clientWidth;
       setScale(Math.min(w / CARD_W, 1));
     };
 
@@ -48,7 +36,6 @@ export default function CardEditor() {
 
     const ro = new ResizeObserver(update);
     ro.observe(el);
-
     return () => ro.disconnect();
   }, []);
 
@@ -63,21 +50,23 @@ export default function CardEditor() {
 
   const exportRef = useRef<HTMLDivElement | null>(null);
 
-  // 追加：プレビュー用
+  // ---- プレビュー側スケール
   const PREVIEW_W = 480;
-  const PREVIEW_H = 260;
 
   const previewWrapRef = useRef<HTMLDivElement | null>(null);
   const [previewScale, setPreviewScale] = useState(1);
 
   useEffect(() => {
-    if (!isPreview) return; // モーダル開いてる時だけ
+    if (!isPreview) return;
+
     const el = previewWrapRef.current;
     if (!el) return;
 
     const update = () => {
       const w = el.clientWidth;
-      setPreviewScale(Math.min(w / PREVIEW_W, 1));
+      const next = Math.min(w / PREVIEW_W, 1);
+      console.log("[preview-ref]", "w =", w, "scale =", next);
+      setPreviewScale(next);
     };
 
     update();
@@ -90,10 +79,8 @@ export default function CardEditor() {
   return (
     <>
       <div className="flex min-h-screen w-full font-sans dark:bg-black">
-        {/* 左：ツールバー */}
         <Toolbar />
 
-        {/* 右：エディタ領域 */}
         <div className="flex-1 flex items-center justify-center">
           <main className="flex min-h-screen w-full max-w-5xl flex-col items-center gap-10 py-16 px-6 dark:bg-neutral-900 lg:flex-row sm:items-start">
             {/* 左：プレビュー（表面＋裏面） */}
@@ -115,52 +102,34 @@ export default function CardEditor() {
                 <p className="mt-4 text-sm text-zinc-600">
                   裏面（テキスト編集・ドラッグ可能）
                 </p>
-                {/* B：見た目サイズ枠（レスポンシブで縮む） */}
+
+                {/* B：見た目サイズ枠（縮む） */}
                 <div
                   ref={wrapRef}
                   className="relative w-full max-w-[480px]"
                   style={{ aspectRatio: "480 / 260" }}
                 >
-                  {/* C：実寸カード（480×260）を scale して載せる */}
                   <div
-                    ref={cardRef}
                     style={{
                       width: 480,
                       height: 260,
                       transform: `scale(${scale})`,
                       transformOrigin: "top left",
-                      ...getCardStyle(design),
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
                     }}
-                    className="absolute top-0 left-0 rounded-xl border shadow-md overflow-hidden"
                   >
-                    {blocks.map((block) => (
-                      <div
-                        key={block.id}
-                        ref={(el) => {
-                          blockRefs.current[block.id] = el;
-                        }}
-                        onMouseDown={(e) =>
-                          handleMouseDown(e, block.id, {
-                            disabled: isPreview,
-                            scale,
-                          })
-                        }
-                        style={{
-                          top: block.y,
-                          left: block.x,
-                          cursor: isPreview ? "default" : "move",
-                        }}
-                        className={`absolute select-none whitespace-nowrap text-zinc-900 dark:text-zinc-50 ${
-                          block.fontWeight === "bold"
-                            ? "font-bold"
-                            : "font-normal"
-                        }`}
-                      >
-                        <span style={{ fontSize: `${block.fontSize}px` }}>
-                          {block.text}
-                        </span>
-                      </div>
-                    ))}
+                    <CardSurface
+                      blocks={blocks}
+                      design={design}
+                      interactive={!isPreview}
+                      cardRef={cardRef}
+                      blockRefs={blockRefs}
+                      onBlockMouseDown={(e, id) =>
+                        handleMouseDown(e, id, { disabled: isPreview, scale })
+                      }
+                    />
                   </div>
                 </div>
 
@@ -246,7 +215,7 @@ export default function CardEditor() {
                 </div>
               )}
 
-              {/* デザインタブ（例） */}
+              {/* デザインタブ */}
               {activeTab === "design" && (
                 <div className="space-y-3 pt-4 text-sm">
                   <p>カードの背景デザインを選択してください。</p>
@@ -295,7 +264,7 @@ export default function CardEditor() {
                 </div>
               )}
 
-              {/* フォント・書き出しタブは今のままでOK（downloadImage はそのまま使って大丈夫） */}
+              {/* 書き出しタブ */}
               {activeTab === "export" && (
                 <div className="space-y-4 pt-4">
                   <p className="text-sm text-zinc-600">
@@ -327,82 +296,31 @@ export default function CardEditor() {
           onClose={() => setIsPreview(false)}
           title="名刺プレビュー（裏面）"
         >
-          {/* B：見た目枠（縮む） */}
-          <div
-            ref={previewWrapRef}
-            className="relative w-full max-w-[480px]"
-            style={{ aspectRatio: "480 / 260" }}
-          >
-            {/* C：実寸カード（480×260）を scale */}
+          <div ref={previewWrapRef} className="w-full max-w-[480px] min-w-0">
             <div
-              style={{
-                width: PREVIEW_W,
-                height: PREVIEW_H,
-                transform: `scale(${previewScale})`,
-                transformOrigin: "top left",
-                position: "absolute",
-                top: 0,
-                left: 0,
-                ...getCardStyle(design),
-              }}
-              className="rounded-xl border shadow-md overflow-hidden"
+              className="relative mx-auto"
+              style={{ width: 480 * previewScale, height: 260 * previewScale }}
             >
-              {blocks.map((block) => (
-                <div
-                  key={block.id}
-                  style={{ top: block.y, left: block.x }}
-                  className={`absolute select-none whitespace-nowrap text-zinc-900 dark:text-zinc-50 ${
-                    block.fontWeight === "bold" ? "font-bold" : "font-normal"
-                  }`}
-                >
-                  <span style={{ fontSize: `${block.fontSize}px` }}>
-                    {block.text}
-                  </span>
-                </div>
-              ))}
+              <div
+                style={{
+                  width: 480,
+                  height: 260,
+                  transform: `scale(${previewScale})`,
+                  transformOrigin: "top left",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                }}
+              >
+                <CardSurface blocks={blocks} design={design} />
+              </div>
             </div>
           </div>
         </ModalPreview>
       </div>
 
       {/* 書き出し専用DOM（画面外・scaleなし・常に 480x260） */}
-      <div
-        style={{
-          position: "fixed",
-          left: -10000,
-          top: 0,
-          width: 480,
-          height: 260,
-          pointerEvents: "none",
-          opacity: 0,
-        }}
-      >
-        <div
-          ref={exportRef}
-          style={{
-            width: 480,
-            height: 260,
-            transform: "none",
-            transformOrigin: "top left",
-            ...getCardStyle(design),
-          }}
-          className="relative rounded-xl border shadow-md overflow-hidden"
-        >
-          {blocks.map((block) => (
-            <div
-              key={block.id}
-              style={{ top: block.y, left: block.x }}
-              className={`absolute select-none whitespace-nowrap text-zinc-900 ${
-                block.fontWeight === "bold" ? "font-bold" : "font-normal"
-              }`}
-            >
-              <span style={{ fontSize: `${block.fontSize}px` }}>
-                {block.text}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <ExportSurface ref={exportRef} blocks={blocks} design={design} />
     </>
   );
 }

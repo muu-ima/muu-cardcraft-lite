@@ -30,7 +30,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
         </div>
 
         {/* コンテンツ */}
-        <div className="flex justify-center">
+        <div className="flex justify-center w-full">
           {children}
         </div>
 
