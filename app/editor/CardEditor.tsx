@@ -18,7 +18,7 @@ function getCardStyle(design: DesignKey): CSSProperties {
     backgroundSize: conf.mode === "contain" ? "contain" : "cover",
     backgroundRepeat: "no-repeat",
     backgroundPosition: "center",
-    backgroundColor: conf.bgColor,
+    backgroundColor: conf.bgColor ?? "#ffffff",
   };
 }
 
@@ -62,6 +62,30 @@ export default function CardEditor() {
   } = useCardBlocks();
 
   const exportRef = useRef<HTMLDivElement | null>(null);
+
+  // 追加：プレビュー用
+  const PREVIEW_W = 480;
+  const PREVIEW_H = 260;
+
+  const previewWrapRef = useRef<HTMLDivElement | null>(null);
+  const [previewScale, setPreviewScale] = useState(1);
+
+  useEffect(() => {
+    if (!isPreview) return; // モーダル開いてる時だけ
+    const el = previewWrapRef.current;
+    if (!el) return;
+
+    const update = () => {
+      const w = el.clientWidth;
+      setPreviewScale(Math.min(w / PREVIEW_W, 1));
+    };
+
+    update();
+
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isPreview]);
 
   return (
     <>
@@ -303,23 +327,40 @@ export default function CardEditor() {
           onClose={() => setIsPreview(false)}
           title="名刺プレビュー（裏面）"
         >
+          {/* B：見た目枠（縮む） */}
           <div
-            className="relative w-full max-w-[480px] aspect-480/260 rounded-xl border shadow-md overflow-hidden"
-            style={getCardStyle(design)}
+            ref={previewWrapRef}
+            className="relative w-full max-w-[480px]"
+            style={{ aspectRatio: "480 / 260" }}
           >
-            {blocks.map((block) => (
-              <div
-                key={block.id}
-                style={{ top: block.y, left: block.x }}
-                className={`absolute select-none whitespace-nowrap text-zinc-900 dark:text-zinc-50 ${
-                  block.fontWeight === "bold" ? "font-bold" : "font-normal"
-                }`}
-              >
-                <span style={{ fontSize: `${block.fontSize}px` }}>
-                  {block.text}
-                </span>
-              </div>
-            ))}
+            {/* C：実寸カード（480×260）を scale */}
+            <div
+              style={{
+                width: PREVIEW_W,
+                height: PREVIEW_H,
+                transform: `scale(${previewScale})`,
+                transformOrigin: "top left",
+                position: "absolute",
+                top: 0,
+                left: 0,
+                ...getCardStyle(design),
+              }}
+              className="rounded-xl border shadow-md overflow-hidden"
+            >
+              {blocks.map((block) => (
+                <div
+                  key={block.id}
+                  style={{ top: block.y, left: block.x }}
+                  className={`absolute select-none whitespace-nowrap text-zinc-900 dark:text-zinc-50 ${
+                    block.fontWeight === "bold" ? "font-bold" : "font-normal"
+                  }`}
+                >
+                  <span style={{ fontSize: `${block.fontSize}px` }}>
+                    {block.text}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </ModalPreview>
       </div>
