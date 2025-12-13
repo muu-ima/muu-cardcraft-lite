@@ -79,15 +79,20 @@ export function useCardBlocks() {
     setBlocks((prev) => prev.map((b) => (b.id === id ? { ...b, text } : b)));
   };
 
+  const dragScaleRef = useRef(1);
+
   // マウスダウン開始
   const handlePointerDown = (
-    e: React.MouseEvent,
+    e: React.PointerEvent,
     id: string,
     options?: DragOptions
   ) => {
     if (options?.disabled) return;
 
+    e.currentTarget.setPointerCapture(e.pointerId);
+
     const scale = options?.scale ?? 1;
+    dragScaleRef.current = scale;
 
     e.preventDefault();
     setDragTargetId(id);
@@ -112,22 +117,32 @@ export function useCardBlocks() {
 
   // ドラッグ中の座標更新
   useEffect(() => {
+    const BASE_W = 480;
+    const BASE_H = 260;
+
     const handleMove = (e: PointerEvent) => {
       if (!isDragging || !dragTargetId || !cardRef.current) return;
 
+      const scale = dragScaleRef.current;
       const cardRect = cardRef.current.getBoundingClientRect();
       const targetEl = blockRefs.current[dragTargetId];
       if (!targetEl) return;
 
-      const textRect = targetEl.getBoundingClientRect();
-      const textWidth = textRect.width;
+      // 見た目 → 論理
+      const textWidth = targetEl.getBoundingClientRect().width / scale;
 
-      const rawX = e.clientX - cardRect.left - offset.x;
-      const maxX = cardRect.width - textWidth;
+      // 画面座標 → 論理座標
+      const pointerX = (e.clientX - cardRect.left) / scale;
+      const pointerY = (e.clientY - cardRect.top) / scale;
+
+      const rawX = pointerX - offset.x;
+      const rawY = pointerY - offset.y;
+
+      // BASE基準で clamp
+      const maxX = BASE_W - textWidth;
+      const maxY = BASE_H - 20;
+
       const newX = Math.max(0, Math.min(maxX, rawX));
-
-      const rawY = e.clientY - cardRect.top - offset.y;
-      const maxY = cardRect.height - 20;
       const newY = Math.max(0, Math.min(maxY, rawY));
 
       setBlocks((prev) =>
@@ -137,7 +152,11 @@ export function useCardBlocks() {
       );
     };
 
-    const handleUp = () => {
+    const handleUp = (e: PointerEvent) => {
+      try {
+        (e.target as HTMLElement)?.releasePointerCapture?.(e.pointerId);
+      } catch {}
+
       setIsDragging(false);
       setDragTargetId(null);
     };
