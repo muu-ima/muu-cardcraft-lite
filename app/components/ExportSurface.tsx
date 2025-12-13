@@ -3,7 +3,8 @@
 
 import { forwardRef } from "react";
 import CardSurface from "@/app/components/CardSurface";
-import type { Block, DesignKey } from "@/hooks/useCardBlocks";
+import type { Block } from "@/hooks/useCardBlocks";
+import type { DesignKey } from "@/shared/design";
 
 type Props = {
   blocks: Block[];
