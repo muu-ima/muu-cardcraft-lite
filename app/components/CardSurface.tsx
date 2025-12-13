@@ -14,8 +14,11 @@ type CardSurfaceProps = {
   /** 編集可能か (ドラッグ有無) */
   interactive?: boolean;
 
-  /** 編集用 */
-  onBlockMouseDown?: (e: React.MouseEvent<HTMLDivElement>, blockId: string) => void;
+  /** 編集用（タップ/マウス共通） */
+  onBlockPointerDown?: (
+    e: React.PointerEvent<HTMLDivElement>,
+    blockId: string
+  ) => void;
 
   /** editor / export 用 ref */
   cardRef?: RefObject<HTMLDivElement | null>;
@@ -47,7 +50,7 @@ export default function CardSurface({
   blocks,
   design,
   interactive = false,
-  onBlockMouseDown,
+  onBlockPointerDown,
   cardRef,
   blockRefs,
   className,
@@ -63,7 +66,9 @@ export default function CardSurface({
         ...getCardStyle(design),
         ...style,
       }}
-      className={`rounded-xl border shadow-md overflow-hidden ${className ?? ""}`}
+      className={`rounded-xl border shadow-md overflow-hidden ${
+        className ?? ""
+      }`}
     >
       {blocks.map((block) => (
         <div
@@ -71,8 +76,10 @@ export default function CardSurface({
           ref={(el) => {
             if (blockRefs) blockRefs.current[block.id] = el;
           }}
-          onMouseDown={
-            interactive && onBlockMouseDown ? (e) => onBlockMouseDown(e, block.id) : undefined
+          onPointerDown={
+            interactive && onBlockPointerDown
+              ? (e) => onBlockPointerDown(e, block.id)
+              : undefined
           }
           style={{
             position: "absolute",

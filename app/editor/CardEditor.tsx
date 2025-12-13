@@ -8,6 +8,7 @@ import EditorTabs from "@/app/components/EditorTabs";
 import TextTab from "@/app/components/tabs/TextTab";
 import DesignTab from "@/app/components/tabs/DesignTab";
 import ExportTab from "@/app/components/tabs/ExportTab";
+
 import { useScaleToFit } from "@/hooks/useScaleToFit";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
 import { type DesignKey } from "@/shared/design";
@@ -32,7 +33,7 @@ export default function CardEditor() {
   const {
     blocks,
     updateText,
-    handleMouseDown,
+    handlePointerDown,
     cardRef,
     blockRefs,
     downloadImage,
@@ -88,8 +89,8 @@ export default function CardEditor() {
                       interactive={!isPreview}
                       cardRef={cardRef}
                       blockRefs={blockRefs}
-                      onBlockMouseDown={(e, id) =>
-                        handleMouseDown(e, id, { disabled: isPreview, scale })
+                      onBlockPointerDown={(e, id) =>
+                        handlePointerDown(e, id, { disabled: isPreview, scale })
                       }
                     />
                   </div>

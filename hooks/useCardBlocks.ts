@@ -18,7 +18,6 @@ export type Block = {
   fontWeight: "normal" | "bold";
 };
 
-
 // とりあえずこのファイルにデザイン定義を持たせる（あとで shared/ に出してもOK）
 const CARD_DESIGNS: Record<
   DesignKey,
@@ -81,7 +80,7 @@ export function useCardBlocks() {
   };
 
   // マウスダウン開始
-  const handleMouseDown = (
+  const handlePointerDown = (
     e: React.MouseEvent,
     id: string,
     options?: DragOptions
@@ -113,12 +112,11 @@ export function useCardBlocks() {
 
   // ドラッグ中の座標更新
   useEffect(() => {
-    const handleMove = (e: MouseEvent) => {
+    const handleMove = (e: PointerEvent) => {
       if (!isDragging || !dragTargetId || !cardRef.current) return;
 
       const cardRect = cardRef.current.getBoundingClientRect();
       const targetEl = blockRefs.current[dragTargetId];
-
       if (!targetEl) return;
 
       const textRect = targetEl.getBoundingClientRect();
@@ -144,11 +142,12 @@ export function useCardBlocks() {
       setDragTargetId(null);
     };
 
-    window.addEventListener("mousemove", handleMove);
-    window.addEventListener("mouseup", handleUp);
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
+
     return () => {
-      window.removeEventListener("mousemove", handleMove);
-      window.removeEventListener("mouseup", handleUp);
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
     };
   }, [isDragging, dragTargetId, offset]);
 
@@ -249,7 +248,7 @@ export function useCardBlocks() {
   return {
     blocks,
     updateText,
-    handleMouseDown,
+    handlePointerDown,
     cardRef,
     blockRefs,
     downloadImage,
