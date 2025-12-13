@@ -7,6 +7,7 @@ import CardSurface from "@/app/components/CardSurface";
 import EditorTabs from "@/app/components/EditorTabs";
 import TextTab from "@/app/components/tabs/TextTab";
 import DesignTab from "@/app/components/tabs/DesignTab";
+import ExportTab from "@/app/components/tabs/ExportTab";
 import { useScaleToFit } from "@/hooks/useScaleToFit";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
 import { type DesignKey } from "@/shared/design";
@@ -36,7 +37,6 @@ export default function CardEditor() {
     blockRefs,
     downloadImage,
   } = useCardBlocks();
-
 
   return (
     <>
@@ -122,34 +122,16 @@ export default function CardEditor() {
 
               {/* デザインタブ */}
               {activeTab === "design" && (
-  <DesignTab
-    value={design}
-    onChange={setDesign}
-  />
-)}
-
+                <DesignTab value={design} onChange={setDesign} />
+              )}
 
               {/* 書き出しタブ */}
               {activeTab === "export" && (
-                <div className="space-y-4 pt-4">
-                  <p className="text-sm text-zinc-600">
-                    仕上がった名刺を画像として書き出します。
-                  </p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => downloadImage("png", design)}
-                      className="flex-1 rounded-full bg-blue-600 px-4 py-2 text-white text-sm"
-                    >
-                      裏面をPNGダウンロード
-                    </button>
-                    <button
-                      onClick={() => downloadImage("jpeg", design)}
-                      className="flex-1 rounded-full bg-emerald-600 px-4 py-2 text-white text-sm"
-                    >
-                      裏面をJPEGダウンロード
-                    </button>
-                  </div>
-                </div>
+                <ExportTab
+                  design={design}
+                  fontFamily={fontFamily} // 使わないなら消す
+                  onDownload={downloadImage}
+                />
               )}
             </section>
           </main>
