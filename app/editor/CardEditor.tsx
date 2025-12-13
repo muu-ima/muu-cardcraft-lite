@@ -6,6 +6,7 @@ import Toolbar from "@/app/components/Toolbar";
 import CardSurface from "@/app/components/CardSurface";
 import ExportSurface from "@/app/components/ExportSurface";
 import EditorTabs from "@/app/components/EditorTabs";
+import TextTab from "@/app/components/tabs/TextTab";
 import { useScaleToFit } from "@/hooks/useScaleToFit";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
 import { type DesignKey } from "@/shared/design";
@@ -112,28 +113,12 @@ export default function CardEditor() {
 
               {/* テキストタブ */}
               {activeTab === "text" && (
-                <div className="space-y-4 pt-2">
-                  {blocks.map((block, index) => (
-                    <div key={block.id}>
-                      <label className="text-sm text-zinc-700 dark:text-zinc-200">
-                        テキスト{index + 1}
-                      </label>
-                      <input
-                        value={block.text}
-                        onChange={(e) => updateText(block.id, e.target.value)}
-                        disabled={isPreview}
-                        className="mt-1 w-full rounded border px-3 py-2 text-sm dark:bg-neutral-800 dark:text-zinc-50"
-                      />
-                    </div>
-                  ))}
-
-                  <button
-                    onClick={() => setIsPreview((prev) => !prev)}
-                    className="w-full rounded-full border px-4 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-neutral-800 dark:text-zinc-50"
-                  >
-                    {isPreview ? "編集モードに戻る" : "プレビュー表示"}
-                  </button>
-                </div>
+                <TextTab
+                  blocks={blocks}
+                  isPreview={isPreview}
+                  onChangeText={updateText}
+                  onTogglePreview={() => setIsPreview((p) => !p)}
+                />
               )}
 
               {/* デザインタブ */}
