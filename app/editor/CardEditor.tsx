@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import ModalPreview from "@/app/components/ModalPreview";
 import Toolbar from "@/app/components/Toolbar";
 import CardSurface from "@/app/components/CardSurface";
 import ExportSurface from "@/app/components/ExportSurface";
+import EditorTabs from "@/app/components/EditorTabs";
+import { useScaleToFit } from "@/hooks/useScaleToFit";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
 import { type DesignKey } from "@/shared/design";
-
 
 export default function CardEditor() {
   const [activeTab, setActiveTab] = useState<
@@ -17,27 +18,14 @@ export default function CardEditor() {
   const [isPreview, setIsPreview] = useState(false);
   const [design, setDesign] = useState<DesignKey>("plain");
 
-  const CARD_W = 480;
+  // 編集用
+  const { ref: wrapRef, scale } = useScaleToFit(480, true);
 
-  // ---- 編集側スケール
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-  const [scale, setScale] = useState(1);
-
-  useEffect(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-
-    const update = () => {
-      const w = el.clientWidth;
-      setScale(Math.min(w / CARD_W, 1));
-    };
-
-    update();
-
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+  // プレビュー用（モーダル開いてる時だけ動く）
+  const { ref: previewWrapRef, scale: previewScale } = useScaleToFit(
+    480,
+    isPreview
+  );
 
   const {
     blocks,
@@ -49,32 +37,6 @@ export default function CardEditor() {
   } = useCardBlocks();
 
   const exportRef = useRef<HTMLDivElement | null>(null);
-
-  // ---- プレビュー側スケール
-  const PREVIEW_W = 480;
-
-  const previewWrapRef = useRef<HTMLDivElement | null>(null);
-  const [previewScale, setPreviewScale] = useState(1);
-
-  useEffect(() => {
-    if (!isPreview) return;
-
-    const el = previewWrapRef.current;
-    if (!el) return;
-
-    const update = () => {
-      const w = el.clientWidth;
-      const next = Math.min(w / PREVIEW_W, 1);
-      console.log("[preview-ref]", "w =", w, "scale =", next);
-      setPreviewScale(next);
-    };
-
-    update();
-
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [isPreview]);
 
   return (
     <>
@@ -146,48 +108,7 @@ export default function CardEditor() {
               </h1>
 
               {/* タブヘッダー */}
-              <div className="flex text-sm border-b">
-                <button
-                  onClick={() => setActiveTab("text")}
-                  className={`px-4 py-2 border-b-2 -mb-px ${
-                    activeTab === "text"
-                      ? "border-blue-600 text-blue-600 font-semibold"
-                      : "border-transparent text-zinc-500 hover:text-zinc-700"
-                  }`}
-                >
-                  テキスト
-                </button>
-                <button
-                  onClick={() => setActiveTab("font")}
-                  className={`px-4 py-2 border-b-2 -mb-px ${
-                    activeTab === "font"
-                      ? "border-blue-600 text-blue-600 font-semibold"
-                      : "border-transparent text-zinc-500 hover:text-zinc-700"
-                  }`}
-                >
-                  フォント
-                </button>
-                <button
-                  onClick={() => setActiveTab("design")}
-                  className={`px-4 py-2 border-b-2 -mb-px ${
-                    activeTab === "design"
-                      ? "border-blue-600 text-blue-600 font-semibold"
-                      : "border-transparent text-zinc-500 hover:text-zinc-700"
-                  }`}
-                >
-                  カード背景
-                </button>
-                <button
-                  onClick={() => setActiveTab("export")}
-                  className={`px-4 py-2 border-b-2 -mb-px ${
-                    activeTab === "export"
-                      ? "border-blue-600 text-blue-600 font-semibold"
-                      : "border-transparent text-zinc-500 hover:text-zinc-700"
-                  }`}
-                >
-                  書き出し
-                </button>
-              </div>
+              <EditorTabs activeTab={activeTab} onChange={setActiveTab} />
 
               {/* テキストタブ */}
               {activeTab === "text" && (
