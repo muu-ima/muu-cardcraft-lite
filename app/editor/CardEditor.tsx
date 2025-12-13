@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import ModalPreview from "@/app/components/ModalPreview";
 import Toolbar from "@/app/components/Toolbar";
 import CardSurface from "@/app/components/CardSurface";
-import ExportSurface from "@/app/components/ExportSurface";
 import EditorTabs from "@/app/components/EditorTabs";
 import TextTab from "@/app/components/tabs/TextTab";
+import DesignTab from "@/app/components/tabs/DesignTab";
 import { useScaleToFit } from "@/hooks/useScaleToFit";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
 import { type DesignKey } from "@/shared/design";
@@ -37,7 +37,6 @@ export default function CardEditor() {
     downloadImage,
   } = useCardBlocks();
 
-  const exportRef = useRef<HTMLDivElement | null>(null);
 
   return (
     <>
@@ -123,52 +122,12 @@ export default function CardEditor() {
 
               {/* デザインタブ */}
               {activeTab === "design" && (
-                <div className="space-y-3 pt-4 text-sm">
-                  <p>カードの背景デザインを選択してください。</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setDesign("plain")}
-                      className={`rounded border px-3 py-2 ${
-                        design === "plain"
-                          ? "border-blue-500 bg-blue-50"
-                          : "hover:bg-zinc-100"
-                      }`}
-                    >
-                      シンプル
-                    </button>
-                    <button
-                      onClick={() => setDesign("girl")}
-                      className={`rounded border px-3 py-2 ${
-                        design === "girl"
-                          ? "border-blue-500 bg-blue-50"
-                          : "hover:bg-zinc-100"
-                      }`}
-                    >
-                      女の子イラスト
-                    </button>
-                    <button
-                      onClick={() => setDesign("kinmokusei")}
-                      className={`rounded border px-3 py-2 ${
-                        design === "kinmokusei"
-                          ? "border-blue-500 bg-blue-50"
-                          : "hover:bg-zinc-100"
-                      }`}
-                    >
-                      金木犀
-                    </button>
-                    <button
-                      onClick={() => setDesign("usaCarrot")}
-                      className={`rounded border px-3 py-2 ${
-                        design === "usaCarrot"
-                          ? "border-blue-500 bg-blue-50"
-                          : "hover:bg-zinc-100"
-                      }`}
-                    >
-                      うさぎ＆にんじん
-                    </button>
-                  </div>
-                </div>
-              )}
+  <DesignTab
+    value={design}
+    onChange={setDesign}
+  />
+)}
+
 
               {/* 書き出しタブ */}
               {activeTab === "export" && (
@@ -224,9 +183,6 @@ export default function CardEditor() {
           </div>
         </ModalPreview>
       </div>
-
-      {/* 書き出し専用DOM（画面外・scaleなし・常に 480x260） */}
-      <ExportSurface ref={exportRef} blocks={blocks} design={design} />
     </>
   );
 }

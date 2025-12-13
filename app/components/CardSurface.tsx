@@ -2,7 +2,8 @@
 "use client";
 
 import type { CSSProperties, RefObject } from "react";
-import type { Block, DesignKey } from "@/hooks/useCardBlocks";
+import type { Block } from "@/hooks/useCardBlocks";
+import type { DesignKey } from "@/shared/design";
 import { CARD_DESIGNS } from "@/shared/design";
 import React from "react";
 

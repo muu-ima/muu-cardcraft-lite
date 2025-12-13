@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { DesignKey } from "@/shared/design";
 
 type DragOptions = {
   disabled?: boolean;
@@ -17,7 +18,6 @@ export type Block = {
   fontWeight: "normal" | "bold";
 };
 
-export type DesignKey = "plain" | "girl" | "kinmokusei" | "usaCarrot";
 
 // とりあえずこのファイルにデザイン定義を持たせる（あとで shared/ に出してもOK）
 const CARD_DESIGNS: Record<
