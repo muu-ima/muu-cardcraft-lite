@@ -107,3 +107,15 @@ yaml
 
 Canvas / Konva / WebGL を使わず、  
 DOM + state 管理だけでどこまで設計できるかを重視しています。
+
+👤 Author
+muu ima
+
+Next.js / TypeScript / Laravel / WordPress / Docker を使って
+業務支援アプリや予約管理システム、海外利益計算ツールなどを制作している
+業務ツールクリエイター。
+
+独学 1年でフルスタック構成を習得
+設計・ロジック・UI/UX・デプロイまで一貫して制作
+社内ツールを中心に、実用性のあるアプリを継続的に開発
+Tools Hub を軸に、計算ツールやシステムを随時拡張中
