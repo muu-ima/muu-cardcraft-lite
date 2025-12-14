@@ -14,6 +14,8 @@ import { useCardBlocks } from "@/hooks/useCardBlocks";
 import { type DesignKey } from "@/shared/design";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
 
+type Side = "front" | "back";
+
 export default function CardEditor() {
   const [side, setSide] = useState<"front" | "back">("back");
   const [activeTab, setActiveTab] = useState<
@@ -46,15 +48,10 @@ export default function CardEditor() {
 
   const activeDesign = CARD_FULL_DESIGNS[design];
   const frontBlocks = activeDesign.front.blocks;
-  const backBlocks = editableBlocks; // ←裏面の編集データ（唯一の真実）
 
-  // 右パネル / プレビュー / 書き出しで「対象」を切り替える
-  const blocksForSide = side === "front" ? frontBlocks : backBlocks;
-  const canEditText = side === "back";
-
-  const previewTitle =
-    side === "front" ? "名刺プレビュー（表面）" : "名刺プレビュー（裏面）";
-  const previewBlocks = side === "front" ? frontBlocks : editableBlocks;
+  // 裏面は hook の editableBlocks が唯一の真実
+  const getBlocksFor = (s: Side) =>
+    s === "front" ? frontBlocks : editableBlocks;
 
   return (
     <>
@@ -167,10 +164,10 @@ export default function CardEditor() {
               {/* テキストタブ */}
               {activeTab === "text" && (
                 <TextTab
-                  blocks={blocksForSide}
+                  blocks={getBlocksFor(side)}
                   isPreview={isPreview}
-                  canEdit={canEditText} // ← これがあるとUXが綺麗
-                  onChangeText={canEditText ? updateText : undefined}
+                  canEdit={side === "back"}
+                  onChangeText={side === "back" ? updateText : undefined}
                   onTogglePreview={() => setIsPreview((p) => !p)}
                 />
               )}
@@ -196,7 +193,9 @@ export default function CardEditor() {
         <ModalPreview
           open={isPreview}
           onClose={() => setIsPreview(false)}
-          title={previewTitle}
+          title={
+            side === "front" ? "名刺プレビュー(表面)" : "名刺プレビュー（裏面）"
+          }
         >
           <div ref={previewWrapRef} className="w-full max-w-[480px] min-w-0">
             <div
@@ -214,7 +213,7 @@ export default function CardEditor() {
                   left: 0,
                 }}
               >
-                <CardSurface blocks={previewBlocks} design={design} />
+                <CardSurface blocks={getBlocksFor(side)} design={design} />{" "}
               </div>
             </div>
           </div>
