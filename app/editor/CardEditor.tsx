@@ -70,28 +70,7 @@ export default function CardEditor() {
     <>
       <div className="flex min-h-screen w-full font-sans dark:bg-black">
         <Toolbar />
-        <div className="mb-4 flex gap-2">
-          <button
-            onClick={() => setSide("front")}
-            className={`px-4 py-2 rounded ${
-              side === "front"
-                ? "bg-zinc-900 text-white"
-                : "bg-zinc-200 text-zinc-700"
-            }`}
-          >
-            表面
-          </button>
-          <button
-            onClick={() => setSide("back")}
-            className={`px-4 py-2 rounded ${
-              side === "back"
-                ? "bg-zinc-900 text-white"
-                : "bg-zinc-200 text-zinc-700"
-            }`}
-          >
-            裏面
-          </button>
-        </div>
+
         <div className="flex-1 flex items-center justify-center">
           <main className="flex min-h-screen w-full max-w-5xl flex-col items-center gap-10 py-16 px-6 dark:bg-neutral-900 lg:flex-row sm:items-start">
             {/* 左：プレビュー（表面＋裏面） */}
@@ -167,9 +146,41 @@ export default function CardEditor() {
 
             {/* 右：インスペクタ */}
             <section className="w-full max-w-md space-y-4 lg:mx-auto">
-              <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
-                シンプルデザイン({sideLabel}デザイン)
-              </h1>
+              <div className="flex items-center justify-between gap-3">
+                <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
+                  シンプルデザイン
+                  <span className="ml-2 text-sm text-zinc-500 dark:text-zinc-400">
+                    ({sideLabel})
+                  </span>
+                </h1>
+
+                {/* 表/裏 トグル（小さく） */}
+                <div className="inline-flex rounded-full bg-zinc-200 p-0.5 text-xs dark:bg-zinc-800">
+                  <button
+                    onClick={() => setSide("front")}
+                    className={`px-3 py-1 rounded-full transition
+        ${
+          side === "front"
+            ? "bg-white text-zinc-900 shadow dark:bg-zinc-50"
+            : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white"
+        }`}
+                  >
+                    表面
+                  </button>
+
+                  <button
+                    onClick={() => setSide("back")}
+                    className={`px-3 py-1 rounded-full transition
+        ${
+          side === "back"
+            ? "bg-white text-zinc-900 shadow dark:bg-zinc-50"
+            : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white"
+        }`}
+                  >
+                    裏面
+                  </button>
+                </div>
+              </div>
 
               {/* タブヘッダー */}
               <EditorTabs activeTab={activeTab} onChange={setActiveTab} />
