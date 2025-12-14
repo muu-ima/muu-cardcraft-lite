@@ -4,7 +4,7 @@
 import type { CSSProperties, RefObject } from "react";
 import type { Block } from "@/hooks/useCardBlocks";
 import type { DesignKey } from "@/shared/design";
-import { CARD_DESIGNS } from "@/shared/design";
+import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
 import React from "react";
 
 type CardSurfaceProps = {
@@ -33,16 +33,16 @@ const BASE_W = 480;
 const BASE_H = 260;
 
 function getCardStyle(design: DesignKey): CSSProperties {
-  const conf = CARD_DESIGNS[design];
+  const bg = CARD_FULL_DESIGNS[design].bg;
 
-  if (!conf.image) return { backgroundColor: conf.bgColor };
+  if (!bg.image) return { backgroundColor: bg.color };
 
   return {
-    backgroundImage: `url(${conf.image})`,
-    backgroundSize: conf.mode === "contain" ? "contain" : "cover",
+    backgroundImage: `url(${bg.image})`,
+    backgroundSize: bg.mode === "contain" ? "contain" : "cover",
     backgroundRepeat: "no-repeat",
     backgroundPosition: "center",
-    backgroundColor: conf.bgColor ?? "#ffffff",
+    backgroundColor: bg.color ?? "#ffffff",
   };
 }
 

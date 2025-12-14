@@ -12,8 +12,10 @@ import ExportTab from "@/app/components/tabs/ExportTab";
 import { useScaleToFit } from "@/hooks/useScaleToFit";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
 import { type DesignKey } from "@/shared/design";
+import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
 
 export default function CardEditor() {
+  const [side, setSide] = useState<"front" | "back">("back");
   const [activeTab, setActiveTab] = useState<
     "text" | "font" | "design" | "export"
   >("text");
@@ -21,7 +23,10 @@ export default function CardEditor() {
   const [isPreview, setIsPreview] = useState(false);
   const [design, setDesign] = useState<DesignKey>("plain");
 
-  // 編集用
+  // 表面用（常時）
+  const { ref: frontWrapRef, scale: frontScale } = useScaleToFit(480, true);
+
+  // 裏面用（今あるやつ）
   const { ref: wrapRef, scale } = useScaleToFit(480, true);
 
   // プレビュー用（モーダル開いてる時だけ動く）
@@ -31,7 +36,7 @@ export default function CardEditor() {
   );
 
   const {
-    blocks,
+    blocks: editableBlocks,
     updateText,
     handlePointerDown,
     cardRef,
@@ -39,26 +44,68 @@ export default function CardEditor() {
     downloadImage,
   } = useCardBlocks();
 
+  const activeDesign = CARD_FULL_DESIGNS[design];
+  const frontBlocks = activeDesign.front.blocks;
+  const backBlocks = editableBlocks; // ←裏面の編集データ（唯一の真実）
+
+  // 右パネル / プレビュー / 書き出しで「対象」を切り替える
+  const blocksForSide = side === "front" ? frontBlocks : backBlocks;
+  const canEditText = side === "back";
+
+  const previewTitle =
+    side === "front" ? "名刺プレビュー（表面）" : "名刺プレビュー（裏面）";
+  const previewBlocks = side === "front" ? frontBlocks : editableBlocks;
+
   return (
     <>
       <div className="flex min-h-screen w-full font-sans dark:bg-black">
         <Toolbar />
-
+        <div className="mb-4 flex gap-2">
+          <button
+            onClick={() => setSide("front")}
+            className={`px-4 py-2 rounded ${
+              side === "front"
+                ? "bg-zinc-900 text-white"
+                : "bg-zinc-200 text-zinc-700"
+            }`}
+          >
+            表面
+          </button>
+          <button
+            onClick={() => setSide("back")}
+            className={`px-4 py-2 rounded ${
+              side === "back"
+                ? "bg-zinc-900 text-white"
+                : "bg-zinc-200 text-zinc-700"
+            }`}
+          >
+            裏面
+          </button>
+        </div>
         <div className="flex-1 flex items-center justify-center">
           <main className="flex min-h-screen w-full max-w-5xl flex-col items-center gap-10 py-16 px-6 dark:bg-neutral-900 lg:flex-row sm:items-start">
             {/* 左：プレビュー（表面＋裏面） */}
-            <section className="w-full flex-1 flex justify-center">
+            <section className="w-full flex-1 min-w-0 flex justify-center">
               <div className="space-y-6">
-                <p className="text-sm text-zinc-600">表面（サンプル）</p>
+                <p className="text-sm text-zinc-600">表面</p>
 
-                <div className="relative w-full max-w-[480px] aspect-480/260 rounded-xl border bg-[#e2c7a3] shadow-md flex items-center justify-center dark:bg-neutral-800">
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-10 h-10 rounded-full border border-zinc-900/40 dark:border-zinc-50/40 flex items-center justify-center text-xs">
-                      Logo
-                    </div>
-                    <span className="text-xs text-zinc-700 dark:text-zinc-200">
-                      ブランドロゴのみ / テキスト編集不可
-                    </span>
+                <div
+                  ref={frontWrapRef}
+                  className="relative w-full max-w-[480px] min-w-0 mx-auto"
+                  style={{ aspectRatio: "480 / 260" }}
+                >
+                  <div
+                    style={{
+                      width: 480,
+                      height: 260,
+                      transform: `scale(${frontScale})`,
+                      transformOrigin: "top left",
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                    }}
+                  >
+                    <CardSurface blocks={frontBlocks} design={design} />
                   </div>
                 </div>
 
@@ -69,7 +116,7 @@ export default function CardEditor() {
                 {/* B：見た目サイズ枠（縮む） */}
                 <div
                   ref={wrapRef}
-                  className="relative w-full max-w-[480px]"
+                  className="relative w-full max-w-[480px] min-w-0 mx-auto"
                   style={{ aspectRatio: "480 / 260" }}
                 >
                   <div
@@ -84,13 +131,19 @@ export default function CardEditor() {
                     }}
                   >
                     <CardSurface
-                      blocks={blocks}
+                      blocks={editableBlocks} // ★ 常に裏面（作業場）
                       design={design}
-                      interactive={!isPreview}
+                      interactive={!isPreview} // ★ side に依存しない
                       cardRef={cardRef}
                       blockRefs={blockRefs}
-                      onBlockPointerDown={(e, id) =>
-                        handlePointerDown(e, id, { disabled: isPreview, scale })
+                      onBlockPointerDown={
+                        !isPreview
+                          ? (e, id) =>
+                              handlePointerDown(e, id, {
+                                disabled: isPreview,
+                                scale,
+                              })
+                          : undefined
                       }
                     />
                   </div>
@@ -114,9 +167,10 @@ export default function CardEditor() {
               {/* テキストタブ */}
               {activeTab === "text" && (
                 <TextTab
-                  blocks={blocks}
+                  blocks={blocksForSide}
                   isPreview={isPreview}
-                  onChangeText={updateText}
+                  canEdit={canEditText} // ← これがあるとUXが綺麗
+                  onChangeText={canEditText ? updateText : undefined}
                   onTogglePreview={() => setIsPreview((p) => !p)}
                 />
               )}
@@ -142,7 +196,7 @@ export default function CardEditor() {
         <ModalPreview
           open={isPreview}
           onClose={() => setIsPreview(false)}
-          title="名刺プレビュー（裏面）"
+          title={previewTitle}
         >
           <div ref={previewWrapRef} className="w-full max-w-[480px] min-w-0">
             <div
@@ -160,7 +214,7 @@ export default function CardEditor() {
                   left: 0,
                 }}
               >
-                <CardSurface blocks={blocks} design={design} />
+                <CardSurface blocks={previewBlocks} design={design} />
               </div>
             </div>
           </div>
