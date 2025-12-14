@@ -65,6 +65,7 @@ export default function CardSurface({
         position: "relative",
         ...getCardStyle(design),
         ...style,
+        touchAction: "none",
       }}
       className={`rounded-xl border shadow-md overflow-hidden ${
         className ?? ""
