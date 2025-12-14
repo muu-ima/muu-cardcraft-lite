@@ -89,10 +89,10 @@ export function useCardBlocks() {
   ) => {
     if (options?.disabled) return;
 
-    e.currentTarget.setPointerCapture(e.pointerId);
-
     const scale = options?.scale ?? 1;
     dragScaleRef.current = scale;
+
+    e.currentTarget.setPointerCapture(e.pointerId);
 
     e.preventDefault();
     setDragTargetId(id);
@@ -163,10 +163,12 @@ export function useCardBlocks() {
 
     window.addEventListener("pointermove", handleMove);
     window.addEventListener("pointerup", handleUp);
+    window.addEventListener("pointercancel", handleUp);
 
     return () => {
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
+      window.removeEventListener("pointercancel", handleUp);
     };
   }, [isDragging, dragTargetId, offset]);
 
