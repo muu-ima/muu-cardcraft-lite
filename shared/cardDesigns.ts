@@ -39,7 +39,24 @@ export const CARD_FULL_DESIGNS: Record<DesignKey, cardDesign> = {
     },
     front: {
       editable: false,
-      blocks: [],
+      blocks: [
+        {
+          id: "brand",
+          text: "Cocco",
+          x: 40,
+          y: 40,
+          fontSize: 20,
+          fontWeight: "bold",
+        },
+        {
+          id: "url",
+          text: "cocco.example",
+          x: 40,
+          y: 80,
+          fontSize: 14,
+          fontWeight: "normal",
+        },
+      ],
     },
     back: {
       editable: true,

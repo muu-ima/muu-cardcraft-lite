@@ -3,37 +3,41 @@
 import type { Block } from "@/hooks/useCardBlocks";
 
 type Props = {
-    blocks: Block[];
-    isPreview: boolean;
-    onChangeText: (id: string, value: string) => void;
-    onTogglePreview: () => void;
+  blocks: Block[];
+  isPreview: boolean;
+  onChangeText?: (id: string, value: string) => void; // ← optionalに
+  onTogglePreview: () => void;
+  canEdit?: boolean; // あってもいい（なくてもOK）
 };
 
 export default function TextTab({
-    blocks,
-    isPreview,
-    onChangeText,
-    onTogglePreview,
+  blocks,
+  isPreview,
+  onChangeText,
+  onTogglePreview,
 }: Props) {
-    return (
-        <div className="space-y-4 pt-2">
-            {blocks.map((block, index) =>(
-                <div key={block.id}>
-                    <label className="text-sm text-zinc-700 dark:text-zinc-200">
-                        テキスト{index + 1}
-                    </label>
-                    <input value={block.text}
-                    onChange={(e) => onChangeText(block.id, e.target.value)}
-                    disabled={isPreview}
-                    className="mt-1 w-full rounded border px-3 py-2 text-sm dark:bg-neutral-800 dark:text-zinc-50" />
-                </div>
-            ))}
-
-            <button
-            onClick={onTogglePreview}
-            className="w-full rounded-full border px-4 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-neutral-800 dark:text-zinc-50">
-                {isPreview ? "編集モードに戻る" : "プレビュー表示"}
-            </button>
+  return (
+    <div className="space-y-4 pt-2">
+      {blocks.map((block, index) => (
+        <div key={block.id}>
+          <label className="text-sm text-zinc-700 dark:text-zinc-200">
+            テキスト{index + 1}
+          </label>
+          <input
+            value={block.text}
+            onChange={(e) => onChangeText?.(block.id, e.target.value)}
+            disabled={isPreview}
+            className="mt-1 w-full rounded border px-3 py-2 text-sm dark:bg-neutral-800 dark:text-zinc-50"
+          />
         </div>
-    );
+      ))}
+
+      <button
+        onClick={onTogglePreview}
+        className="w-full rounded-full border px-4 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-neutral-800 dark:text-zinc-50"
+      >
+        {isPreview ? "編集モードに戻る" : "プレビュー表示"}
+      </button>
+    </div>
+  );
 }
