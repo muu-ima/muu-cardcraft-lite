@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ModalPreview from "@/app/components/ModalPreview";
 import Toolbar from "@/app/components/Toolbar";
 import CardSurface from "@/app/components/CardSurface";
@@ -18,12 +18,14 @@ type Side = "front" | "back";
 
 export default function CardEditor() {
   const [side, setSide] = useState<"front" | "back">("back");
+  const sideLabel = side === "front" ? "表面" : "裏面";
   const [activeTab, setActiveTab] = useState<
     "text" | "font" | "design" | "export"
   >("text");
   const [fontFamily, setFontFamily] = useState("default");
   const [isPreview, setIsPreview] = useState(false);
   const [design, setDesign] = useState<DesignKey>("plain");
+  const activeDesign = CARD_FULL_DESIGNS[design];
 
   // 表面用（常時）
   const { ref: frontWrapRef, scale: frontScale } = useScaleToFit(480, true);
@@ -46,12 +48,23 @@ export default function CardEditor() {
     downloadImage,
   } = useCardBlocks();
 
-  const activeDesign = CARD_FULL_DESIGNS[design];
-  const frontBlocks = activeDesign.front.blocks;
+  const [frontEditableBlocks, setFrontEditableBlocks] = useState(
+    activeDesign.front.blocks
+  );
+
+  useEffect(() => {
+    setFrontEditableBlocks(CARD_FULL_DESIGNS[design].front.blocks);
+  }, [design]);
+
+  const updateFrontText = (id: string, text: string) => {
+    setFrontEditableBlocks((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, text } : b))
+    );
+  };
 
   // 裏面は hook の editableBlocks が唯一の真実
   const getBlocksFor = (s: Side) =>
-    s === "front" ? frontBlocks : editableBlocks;
+    s === "front" ? frontEditableBlocks : editableBlocks;
 
   return (
     <>
@@ -102,7 +115,7 @@ export default function CardEditor() {
                       left: 0,
                     }}
                   >
-                    <CardSurface blocks={frontBlocks} design={design} />
+                    <CardSurface blocks={frontEditableBlocks} design={design} />
                   </div>
                 </div>
 
@@ -128,13 +141,13 @@ export default function CardEditor() {
                     }}
                   >
                     <CardSurface
-                      blocks={editableBlocks} // ★ 常に裏面（作業場）
+                      blocks={editableBlocks}
                       design={design}
-                      interactive={!isPreview} // ★ side に依存しない
+                      interactive={!isPreview && side === "back"}
                       cardRef={cardRef}
                       blockRefs={blockRefs}
                       onBlockPointerDown={
-                        !isPreview
+                        !isPreview && side === "back"
                           ? (e, id) =>
                               handlePointerDown(e, id, {
                                 disabled: isPreview,
@@ -155,7 +168,7 @@ export default function CardEditor() {
             {/* 右：インスペクタ */}
             <section className="w-full max-w-md space-y-4 lg:mx-auto">
               <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
-                シンプルデザイン（裏面デザイン）
+                シンプルデザイン({sideLabel}デザイン)
               </h1>
 
               {/* タブヘッダー */}
@@ -166,8 +179,8 @@ export default function CardEditor() {
                 <TextTab
                   blocks={getBlocksFor(side)}
                   isPreview={isPreview}
-                  canEdit={side === "back"}
-                  onChangeText={side === "back" ? updateText : undefined}
+                  canEdit={true}
+                  onChangeText={side === "front" ? updateFrontText : updateText}
                   onTogglePreview={() => setIsPreview((p) => !p)}
                 />
               )}
@@ -213,7 +226,7 @@ export default function CardEditor() {
                   left: 0,
                 }}
               >
-                <CardSurface blocks={getBlocksFor(side)} design={design} />{" "}
+                <CardSurface blocks={getBlocksFor(side)} design={design} />
               </div>
             </div>
           </div>
