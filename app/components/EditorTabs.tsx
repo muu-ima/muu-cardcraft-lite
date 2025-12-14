@@ -9,7 +9,7 @@ type Props = {
 
 export default function EditorTabs({ activeTab, onChange }: Props) {
     const tabs: { key: TabKey; label: string} [] = [
-        { key: "text", label: "テキスト" },
+        { key: "text", label: "文字" },
         { key: "font", label: "フォント" },
         { key: "design", label: "カード背景" },
         { key: "export", label: "書き出し" },

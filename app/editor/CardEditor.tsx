@@ -145,9 +145,19 @@ export default function CardEditor() {
             </section>
 
             {/* 右：インスペクタ */}
-            <section className="w-full max-w-md space-y-4 lg:mx-auto">
+            <section className="w-full space-y-4 lg:max-w-md lg:mx-auto">
               <div className="flex items-center justify-between gap-3">
-                <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
+                <h1
+                  className="
+                    text-lg          /* mobile */
+                    sm:text-xl       /* small tablet */
+                    lg:text-2xl      /* PC */
+                    font-semibold
+                    tracking-tight
+                    text-black
+                    dark:text-zinc-50
+                  "
+                >
                   シンプルデザイン
                   <span className="ml-2 text-sm text-zinc-500 dark:text-zinc-400">
                     ({sideLabel})
@@ -159,11 +169,11 @@ export default function CardEditor() {
                   <button
                     onClick={() => setSide("front")}
                     className={`px-3 py-1 rounded-full transition
-        ${
-          side === "front"
-            ? "bg-white text-zinc-900 shadow dark:bg-zinc-50"
-            : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white"
-        }`}
+                      ${
+                        side === "front"
+                          ? "bg-white text-zinc-900 shadow dark:bg-zinc-50"
+                          : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white"
+                      }`}
                   >
                     表面
                   </button>
@@ -171,11 +181,11 @@ export default function CardEditor() {
                   <button
                     onClick={() => setSide("back")}
                     className={`px-3 py-1 rounded-full transition
-        ${
-          side === "back"
-            ? "bg-white text-zinc-900 shadow dark:bg-zinc-50"
-            : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white"
-        }`}
+                ${
+                  side === "back"
+                    ? "bg-white text-zinc-900 shadow dark:bg-zinc-50"
+                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white"
+                }`}
                   >
                     裏面
                   </button>

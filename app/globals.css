@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f5eee6;
+  --bg-gradient: linear-gradient(180deg, #fdf6ee 0%, #f7efe6 50%, #f3ece3 100%);
   --foreground: #171717;
 }
 
@@ -20,7 +20,15 @@
 }
 
 body {
-  background: var(--background);
+  background-image: linear-gradient(
+    180deg,
+    #cfe1ff 0%,   /* 上：はっきり青 */
+    #e6efff 35%,
+    #f3f7ff 65%,
+    #ffffff 100% /* 下：ほぼ白 */
+  ); 
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-color: transparent !important;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
