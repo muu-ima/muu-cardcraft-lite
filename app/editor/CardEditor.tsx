@@ -62,7 +62,8 @@ export default function CardEditor() {
   const getBlocksFor = (s: Side) =>
     s === "front" ? frontEditableBlocks : editableBlocks;
 
-  console.log("isPreview:", isPreview);
+  console.log("[SCALE]", { isPreview, frontScale, scale, previewScale });
+
   return (
     <div className="flex h-screen w-full bg-[#eef4ff]">
       <Toolbar activeTab={activeTab} onChange={setActiveTab} />
@@ -142,9 +143,9 @@ export default function CardEditor() {
         onClose={() => setIsPreview(false)}
         title="プレビュー"
       >
-        <div ref={previewWrapRef} className="w-full">
+        <div ref={previewWrapRef} className="w-full flex justify-center">
           <CardSurface
-            blocks={getBlocksFor("back")}
+            blocks={getBlocksFor(side)}
             design={design}
             interactive={false}
             style={{
