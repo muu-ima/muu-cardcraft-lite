@@ -29,7 +29,7 @@ export default function RootLayout({
         </header>
 
         {/* コンテンツ：ここは全幅にする */}
-        <main className="w-full rounded-xl shadow-sm  px-8">
+        <main className="w-full rounded-xl shadow-sm">
           {children}
         </main>
 

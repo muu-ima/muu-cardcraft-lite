@@ -13,15 +13,14 @@ import { useScaleToFit } from "@/hooks/useScaleToFit";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
 import { type DesignKey } from "@/shared/design";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
+import type { TabKey } from "@/shared/editor";
 
 type Side = "front" | "back";
 
 export default function CardEditor() {
   const [side, setSide] = useState<"front" | "back">("back");
   const sideLabel = side === "front" ? "表面" : "裏面";
-  const [activeTab, setActiveTab] = useState<
-    "text" | "font" | "design" | "export"
-  >("text");
+  const [activeTab, setActiveTab] = useState<TabKey>("text");
   const [fontFamily, setFontFamily] = useState("default");
   const [isPreview, setIsPreview] = useState(false);
   const [design, setDesign] = useState<DesignKey>("plain");
@@ -69,8 +68,7 @@ export default function CardEditor() {
   return (
     <>
       <div className="flex min-h-screen w-full font-sans dark:bg-black">
-        <Toolbar />
-
+        <Toolbar activeTab={activeTab} onChange={setActiveTab} />
         <div className="flex-1 flex items-center justify-center">
           <main className="flex min-h-screen w-full max-w-5xl flex-col items-center gap-10 py-16 px-6 dark:bg-neutral-900 lg:flex-row sm:items-start">
             {/* 左：プレビュー（表面＋裏面） */}
