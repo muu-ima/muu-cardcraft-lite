@@ -9,15 +9,15 @@ type ModalProps = {
   children: ReactNode;
 };
 
-export default function Modal({ open, onClose, title, children }: ModalProps) {
+export default function ModalPreview({ open, onClose, title, children }: ModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full mx-4 p-6">
-        {/* ヘッダー */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 sm:p-6">
+      <div className="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-xl max-h-[85vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <h2 className="text-sm font-semibold sm:text-base">
             {title ?? "プレビュー"}
           </h2>
           <button
@@ -29,13 +29,15 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
           </button>
         </div>
 
-        {/* コンテンツ */}
-        <div className="flex justify-center w-full">
-          {children}
+        {/* Body (ここだけ伸び縮み＆必要ならスクロール) */}
+        <div className="flex-1 overflow-auto px-3 py-3 sm:px-4 sm:py-4">
+          <div className="w-full flex items-center justify-center">
+            {children}
+          </div>
         </div>
 
-        {/* フッター */}
-        <div className="mt-6 flex justify-end">
+        {/* Footer */}
+        <div className="border-t px-4 py-3 flex justify-end">
           <button
             onClick={onClose}
             className="rounded-full border px-4 py-2 text-sm hover:bg-zinc-100"
