@@ -4,7 +4,7 @@ import { Type, TextCursor, Image as ImageIcon, Download } from "lucide-react";
 import type { TabKey } from "@/shared/editor";
 
 type Props = {
-  activeTab: TabKey;
+  activeTab: TabKey | null;
   onChange: (tab: TabKey) => void;
 };
 

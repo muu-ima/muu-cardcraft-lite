@@ -6,7 +6,10 @@ export default function EditorLayout({ children }: { children: ReactNode }) {
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#eef4ff]">
       {/* Editor Header */}
-      <header className="h-14 w-full border-b bg-white/70 backdrop-blur">
+      <header
+        className="h-14 w-full border-b
+  bg-linear-to-r from-white via-pink-50 to-amber-50"
+      >
         <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4">
           <div className="flex items-center gap-3">
             <Link href="/" className="font-bold">

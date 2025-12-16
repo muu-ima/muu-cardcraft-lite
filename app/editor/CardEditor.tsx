@@ -16,22 +16,15 @@ type Side = "front" | "back";
 
 export default function CardEditor() {
   const [side, setSide] = useState<Side>("back");
-  const [activeTab, setActiveTab] = useState<TabKey>("text");
-  const [panelOpen, setPanelOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabKey | null>(null);
   const [isPreview, setIsPreview] = useState(false);
 
   const [design, setDesign] = useState<DesignKey>("plain");
   const activeDesign = CARD_FULL_DESIGNS[design];
 
+  // ✅ 同じタブ押し = 閉じる / 別タブ = 切替
   const onChangeTab = (tab: TabKey) => {
-    setActiveTab((prev) => {
-      if (prev === tab) {
-        setPanelOpen((v) => !v);
-        return prev;
-      }
-      setPanelOpen(true);
-      return tab;
-    });
+    setActiveTab((prev) => (prev === tab ? null : tab));
   };
 
   // ★ CanvasArea内の幅でスケール作る（表面/裏面 共通）
@@ -74,6 +67,7 @@ export default function CardEditor() {
 
   const getBlocksFor = (s: Side) =>
     s === "front" ? frontEditableBlocks : editableBlocks;
+
   useEffect(() => {
     const canvasW = canvasRef.current?.clientWidth ?? null;
     const previewW = previewWrapRef.current?.clientWidth ?? null;
@@ -82,12 +76,13 @@ export default function CardEditor() {
       isPreview,
       design,
       side,
+      activeTab,
       canvasW,
       previewW,
       scale,
       previewScale,
     });
-  }, [isPreview, design, side, scale, previewScale, canvasRef, previewWrapRef]);
+  }, [isPreview, design, side, activeTab, scale, previewScale, canvasRef, previewWrapRef]);
 
   return (
     <div className="relative h-full w-full bg-[#eef4ff]">
@@ -97,8 +92,8 @@ export default function CardEditor() {
       </div>
 
       <ToolPanel
-        open={panelOpen}
-        onClose={() => setPanelOpen(false)}
+        open={activeTab !== null}
+        onClose={() => setActiveTab(null)}  // ✅ここが重要
         activeTab={activeTab}
         side={side}
         onChangeSide={setSide}
@@ -110,7 +105,7 @@ export default function CardEditor() {
         onTogglePreview={() => setIsPreview((v) => !v)}
         design={design}
         onChangeDesign={setDesign}
-        fontFamily={"default"}
+        fontFamily="default"
         onDownload={(format, d) => downloadImage(format, d)}
       />
 
@@ -142,9 +137,7 @@ export default function CardEditor() {
               blocks={getBlocksFor("back")}
               design={design}
               interactive={!isPreview}
-              onBlockPointerDown={(e, id) =>
-                handlePointerDown(e, id, { scale })
-              }
+              onBlockPointerDown={(e, id) => handlePointerDown(e, id, { scale })}
               cardRef={cardRef}
               blockRefs={blockRefs}
               style={{
@@ -163,19 +156,10 @@ export default function CardEditor() {
         </section>
       </CanvasArea>
 
-      <ModalPreview
-        open={isPreview}
-        onClose={() => setIsPreview(false)}
-        title="プレビュー"
-      >
+      <ModalPreview open={isPreview} onClose={() => setIsPreview(false)} title="プレビュー">
         <div className="w-full flex justify-center">
           <div ref={previewWrapRef} className="w-full flex justify-center">
-            {/* ✅ 見た目サイズの外箱 */}
-            <div
-              className="overflow-hidden"
-              style={{ width: scaledW, height: scaledH }}
-            >
-              {/* ✅ 実寸の中身 */}
+            <div className="overflow-hidden" style={{ width: scaledW, height: scaledH }}>
               <div
                 style={{
                   width: PREVIEW_W,
@@ -207,7 +191,6 @@ function CanvasArea({
   innerRef: React.RefObject<HTMLDivElement | null>;
 }) {
   return (
-    // ★ヘッダー分(56px)を引いた高さで、スクロールはここだけ
     <main className="ml-14 h-[calc(100vh-56px)] min-w-0 overflow-y-auto px-3 sm:px-6 lg:px-10 py-8">
       <div ref={innerRef} className="mx-auto w-full max-w-4xl">
         {children}

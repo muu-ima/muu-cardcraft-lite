@@ -1,3 +1,5 @@
+// @/app/components/ToolPanel.tsx
+
 "use client";
 
 import type { Block } from "@/hooks/useCardBlocks";
@@ -7,14 +9,13 @@ import type { DesignKey } from "@/shared/design";
 import TextTab from "@/app/components/tabs/TextTab";
 import DesignTab from "@/app/components/tabs/DesignTab";
 import ExportTab from "@/app/components/tabs/ExportTab";
-// import FontTab from "@/app/components/tabs/FontTab"; // あるなら
 
 type Side = "front" | "back";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  activeTab: TabKey;
+  activeTab: TabKey | null;
 
   side: Side;
   onChangeSide: (side: Side) => void;
@@ -51,20 +52,22 @@ export default function ToolPanel({
   onChangeDesign,
   onDownload,
 }: Props) {
-  if (!open) return null; // ★ここが「パッと消える」の正体
+  // ✅ open と activeTab を一致させる（事故防止）
+  if (!open || !activeTab) return null;
+
+  const title =
+    activeTab === "text"
+      ? "テキスト"
+      : activeTab === "design"
+      ? "デザイン"
+      : activeTab === "export"
+      ? "書き出し"
+      : "パネル";
 
   return (
-    <aside className="fixed left-14 top-14 z-30 h-screen w-[360px] border-r bg-white/70 backdrop-blur">
+    <aside className="fixed left-14 top-14 z-30 h-[calc(100vh-56px)] w-[360px] border-r bg-white/70 backdrop-blur">
       <div className="flex items-center justify-between border-b px-3 py-2">
-        <p className="text-xs text-zinc-500">
-          {activeTab === "text"
-            ? "テキスト"
-            : activeTab === "design"
-            ? "デザイン"
-            : activeTab === "export"
-            ? "書き出し"
-            : "パネル"}
-        </p>
+        <p className="text-xs text-zinc-500">{title}</p>
 
         <button
           type="button"
@@ -75,8 +78,7 @@ export default function ToolPanel({
         </button>
       </div>
 
-      <div className="h-[calc(100vh-41px)] overflow-y-auto p-4">
-        {/* ↓ 中身は今のまま */}
+      <div className="h-[calc(100%-41px)] overflow-y-auto p-4">
         {activeTab === "text" && (
           <div className="mb-4">
             <p className="mb-2 text-xs text-zinc-500">編集する面</p>
