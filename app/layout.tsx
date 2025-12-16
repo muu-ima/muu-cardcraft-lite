@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body className="min-h-screen  text-gray-900">
+      <body className="min-h-screen overflow-hidden text-gray-900">
         {/* 共通ヘッダー */}
         <header className="w-full border-b ">
           <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">

@@ -15,25 +15,39 @@ import type { TabKey } from "@/shared/editor";
 type Side = "front" | "back";
 
 export default function CardEditor() {
-  const [side, setSide] = useState<"front" | "back">("back");
-  const sideLabel = side === "front" ? "表面" : "裏面";
+  const [side, setSide] = useState<Side>("back");
   const [activeTab, setActiveTab] = useState<TabKey>("text");
-  const [fontFamily, setFontFamily] = useState("default");
+  const [panelOpen, setPanelOpen] = useState(true);
   const [isPreview, setIsPreview] = useState(false);
+
   const [design, setDesign] = useState<DesignKey>("plain");
   const activeDesign = CARD_FULL_DESIGNS[design];
 
-  // 表面用（常時）
-  const { ref: frontWrapRef, scale: frontScale } = useScaleToFit(480, true);
+  const onChangeTab = (tab: TabKey) => {
+    setActiveTab((prev) => {
+      if (prev === tab) {
+        setPanelOpen((v) => !v);
+        return prev;
+      }
+      setPanelOpen(true);
+      return tab;
+    });
+  };
 
-  // 裏面用（今あるやつ）
-  const { ref: wrapRef, scale } = useScaleToFit(480, true);
+  // ★ CanvasArea内の幅でスケール作る（表面/裏面 共通）
+  const { ref: canvasRef, scale } = useScaleToFit(480, true);
 
-  // プレビュー用（モーダル開いてる時だけ動く）
+  // ★ モーダルはモーダル用に別スケール
   const { ref: previewWrapRef, scale: previewScale } = useScaleToFit(
     480,
     isPreview
   );
+
+  const PREVIEW_W = 480;
+  const PREVIEW_H = 260;
+
+  const scaledW = PREVIEW_W * previewScale;
+  const scaledH = PREVIEW_H * previewScale;
 
   const {
     blocks: editableBlocks,
@@ -58,17 +72,33 @@ export default function CardEditor() {
     );
   };
 
-  // 裏面は hook の editableBlocks が唯一の真実
   const getBlocksFor = (s: Side) =>
     s === "front" ? frontEditableBlocks : editableBlocks;
+  useEffect(() => {
+    const canvasW = canvasRef.current?.clientWidth ?? null;
+    const previewW = previewWrapRef.current?.clientWidth ?? null;
 
-  console.log("[SCALE]", { isPreview, frontScale, scale, previewScale });
+    console.log("[SCALE]", {
+      isPreview,
+      design,
+      side,
+      canvasW,
+      previewW,
+      scale,
+      previewScale,
+    });
+  }, [isPreview, design, side, scale, previewScale, canvasRef, previewWrapRef]);
 
   return (
-    <div className="flex h-screen w-full bg-[#eef4ff]">
-      <Toolbar activeTab={activeTab} onChange={setActiveTab} />
+    <div className="relative h-full w-full bg-[#eef4ff]">
+      {/* ★ヘッダー分(56px)は上に空ける */}
+      <div className="fixed left-0 top-14 z-40 h-[calc(100vh-56px)] w-14 border-r bg-white/70 backdrop-blur">
+        <Toolbar activeTab={activeTab} onChange={onChangeTab} />
+      </div>
 
       <ToolPanel
+        open={panelOpen}
+        onClose={() => setPanelOpen(false)}
         activeTab={activeTab}
         side={side}
         onChangeSide={setSide}
@@ -80,54 +110,49 @@ export default function CardEditor() {
         onTogglePreview={() => setIsPreview((v) => !v)}
         design={design}
         onChangeDesign={setDesign}
-        fontFamily={fontFamily}
+        fontFamily={"default"}
         onDownload={(format, d) => downloadImage(format, d)}
       />
 
-      <CanvasArea>
+      <CanvasArea innerRef={canvasRef}>
         <section className={isPreview ? "space-y-12" : "space-y-10"}>
           {/* 表面 */}
           <div className={isPreview ? "opacity-80" : ""}>
             <p className="mb-2 text-sm text-zinc-600">表面</p>
-            <div ref={frontWrapRef} className="w-full">
-              <CardSurface
-                blocks={getBlocksFor("front")}
-                design={design}
-                interactive={false}
-                style={{
-                  transform: `scale(${frontScale})`,
-                  transformOrigin: "top left",
-                }}
-                className={isPreview ? "shadow-lg" : ""}
-              />
-            </div>
+
+            <CardSurface
+              blocks={getBlocksFor("front")}
+              design={design}
+              interactive={false}
+              style={{
+                transform: `scale(${scale})`,
+                transformOrigin: "top left",
+              }}
+              className={isPreview ? "shadow-lg" : ""}
+            />
           </div>
 
           {/* 裏面 */}
           <div>
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-sm text-zinc-600">
-                裏面{isPreview ? "（プレビュー）" : "（編集：ドラッグ可能）"}
-              </p>
-            </div>
+            <p className="mb-2 text-sm text-zinc-600">
+              裏面{isPreview ? "（プレビュー）" : "（編集：ドラッグ可能）"}
+            </p>
 
-            <div ref={wrapRef} className="w-full">
-              <CardSurface
-                blocks={getBlocksFor("back")}
-                design={design}
-                interactive={!isPreview}
-                onBlockPointerDown={(e, id) =>
-                  handlePointerDown(e, id, { scale })
-                }
-                cardRef={cardRef}
-                blockRefs={blockRefs}
-                style={{
-                  transform: `scale(${scale})`,
-                  transformOrigin: "top left",
-                }}
-                className={isPreview ? "ring-2 ring-blue-500/20 shadow-lg" : ""}
-              />
-            </div>
+            <CardSurface
+              blocks={getBlocksFor("back")}
+              design={design}
+              interactive={!isPreview}
+              onBlockPointerDown={(e, id) =>
+                handlePointerDown(e, id, { scale })
+              }
+              cardRef={cardRef}
+              blockRefs={blockRefs}
+              style={{
+                transform: `scale(${scale})`,
+                transformOrigin: "top left",
+              }}
+              className={isPreview ? "ring-2 ring-blue-500/20 shadow-lg" : ""}
+            />
 
             {!isPreview && (
               <p className="mt-2 text-xs text-zinc-500">
@@ -143,27 +168,50 @@ export default function CardEditor() {
         onClose={() => setIsPreview(false)}
         title="プレビュー"
       >
-        <div ref={previewWrapRef} className="w-full flex justify-center">
-          <CardSurface
-            blocks={getBlocksFor(side)}
-            design={design}
-            interactive={false}
-            style={{
-              transform: `scale(${previewScale})`,
-              transformOrigin: "top left",
-            }}
-            className="shadow-lg"
-          />
+        <div className="w-full flex justify-center">
+          <div ref={previewWrapRef} className="w-full flex justify-center">
+            {/* ✅ 見た目サイズの外箱 */}
+            <div
+              className="overflow-hidden"
+              style={{ width: scaledW, height: scaledH }}
+            >
+              {/* ✅ 実寸の中身 */}
+              <div
+                style={{
+                  width: PREVIEW_W,
+                  height: PREVIEW_H,
+                  transform: `scale(${previewScale})`,
+                  transformOrigin: "top left",
+                }}
+              >
+                <CardSurface
+                  blocks={getBlocksFor(side)}
+                  design={design}
+                  interactive={false}
+                  className="shadow-lg"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </ModalPreview>
     </div>
   );
 }
 
-function CanvasArea({ children }: { children: React.ReactNode }) {
+function CanvasArea({
+  children,
+  innerRef,
+}: {
+  children: React.ReactNode;
+  innerRef: React.RefObject<HTMLDivElement | null>;
+}) {
   return (
-    <main className="flex-1 min-w-0 overflow-y-auto px-10 py-8">
-      <div className="mx-auto w-full max-w-4xl">{children}</div>
+    // ★ヘッダー分(56px)を引いた高さで、スクロールはここだけ
+    <main className="ml-14 h-[calc(100vh-56px)] min-w-0 overflow-y-auto px-3 sm:px-6 lg:px-10 py-8">
+      <div ref={innerRef} className="mx-auto w-full max-w-4xl">
+        {children}
+      </div>
     </main>
   );
 }

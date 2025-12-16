@@ -12,6 +12,8 @@ import ExportTab from "@/app/components/tabs/ExportTab";
 type Side = "front" | "back";
 
 type Props = {
+  open: boolean;
+  onClose: () => void;
   activeTab: TabKey;
 
   side: Side;
@@ -21,7 +23,6 @@ type Props = {
   isPreview: boolean;
   onChangeText: (id: string, value: string) => void;
 
-  // TextTab でプレビュー復活させたなら
   onTogglePreview: () => void;
 
   design: DesignKey;
@@ -37,6 +38,8 @@ type Props = {
 };
 
 export default function ToolPanel({
+  open,
+  onClose,
   activeTab,
   side,
   onChangeSide,
@@ -48,10 +51,32 @@ export default function ToolPanel({
   onChangeDesign,
   onDownload,
 }: Props) {
+  if (!open) return null; // ★ここが「パッと消える」の正体
+
   return (
-    <aside className="w-[360px] shrink-0 border-r bg-white/70 backdrop-blur">
-      <div className="h-full overflow-y-auto p-4">
-        {/* Textの時だけ 表/裏トグル */}
+    <aside className="fixed left-14 top-14 z-30 h-screen w-[360px] border-r bg-white/70 backdrop-blur">
+      <div className="flex items-center justify-between border-b px-3 py-2">
+        <p className="text-xs text-zinc-500">
+          {activeTab === "text"
+            ? "テキスト"
+            : activeTab === "design"
+            ? "デザイン"
+            : activeTab === "export"
+            ? "書き出し"
+            : "パネル"}
+        </p>
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-lg px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-900/5"
+        >
+          閉じる
+        </button>
+      </div>
+
+      <div className="h-[calc(100vh-41px)] overflow-y-auto p-4">
+        {/* ↓ 中身は今のまま */}
         {activeTab === "text" && (
           <div className="mb-4">
             <p className="mb-2 text-xs text-zinc-500">編集する面</p>
@@ -100,11 +125,6 @@ export default function ToolPanel({
         {activeTab === "export" && (
           <ExportTab design={design} onDownload={onDownload} />
         )}
-
-        {/* activeTab === "font" があるならここ */}
-        {/* {activeTab === "font" && (
-          <FontTab value={fontFamily} onChange={onChangeFontFamily} />
-        )} */}
       </div>
     </aside>
   );
