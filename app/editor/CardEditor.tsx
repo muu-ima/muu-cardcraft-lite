@@ -22,6 +22,7 @@ export default function CardEditor() {
 
   const [design, setDesign] = useState<DesignKey>("plain");
   const activeDesign = CARD_FULL_DESIGNS[design];
+  const [showGuides, setShowGuides] = useState(true);
 
   // ✅ 同じタブ押し = 閉じる / 別タブ = 切替
   const onChangeTab = (tab: TabKey) => {
@@ -36,6 +37,9 @@ export default function CardEditor() {
     480,
     isPreview
   );
+
+  const EXPORT_W = 480;
+  const EXPORT_H = 260;
 
   const PREVIEW_W = 480;
   const PREVIEW_H = 260;
@@ -112,7 +116,7 @@ export default function CardEditor() {
       <div className="hidden xl:block">
         {/* Desktop: xl以上は左パネル */}
         <ToolPanel
-           variant="desktop"
+          variant="desktop"
           open={activeTab !== null}
           onClose={() => setActiveTab(null)}
           activeTab={activeTab}
@@ -164,6 +168,16 @@ export default function CardEditor() {
       </div>
 
       <CanvasArea innerRef={canvasRef} panelVisible={panelVisible}>
+        <div className="mb-3 flex w-full max-w-[480px] justify-end">
+          <button
+            type="button"
+            onClick={() => setShowGuides((v) => !v)}
+            className="rounded-lg border bg-white/80 px-3 py-1.5 text-sm text-zinc-700 hover:bg-white"
+          >
+            {showGuides ? "ガイド：ON" : "ガイド：OFF"}
+          </button>
+        </div>
+
         {/* 表/裏トグル（キャンバス上） */}
         <div className="mb-5 hidden xl:flex items-center justify-center">
           <div className="inline-flex rounded-xl border bg-white/80 p-1 backdrop-blur">
@@ -200,21 +214,37 @@ export default function CardEditor() {
             {side === "front" ? "表面" : "裏面"}
             {isPreview ? "（プレビュー）" : "（編集）"}
           </p>
-
-          <CardSurface
-            blocks={getBlocksFor(side)}
-            design={design}
-            interactive={!isPreview}
-            onBlockPointerDown={(e, id) => handlePointerDown(e, id, { scale })}
-            cardRef={cardRef}
-            blockRefs={blockRefs}
+          {/* ✅ スケール枠 + ガイド（Canva風） */}
+          <div
+            className="relative mx-auto"
             style={{
-              transform: `scale(${scale})`,
-              transformOrigin: "top center",
+              width: EXPORT_W * scale,
+              height: EXPORT_H * scale,
             }}
-            className={isPreview ? "shadow-lg" : ""}
-          />
-
+          >
+            <div
+              style={{
+                width: EXPORT_W,
+                height: EXPORT_H,
+                transform: `scale(${scale})`,
+                transformOrigin: "top left",
+              }}
+            >
+              <CardSurface
+                blocks={getBlocksFor(side)}
+                design={design}
+                interactive={!isPreview}
+                onBlockPointerDown={(e, id) =>
+                  handlePointerDown(e, id, { scale })
+                }
+                cardRef={cardRef}
+                blockRefs={blockRefs}
+                className={isPreview ? "shadow-lg" : ""}
+              />
+            </div>
+            {/* ✅ ガイドは“表示だけ” */}
+            {showGuides && <PrintGuides scale={scale} />}
+          </div>
           {!isPreview && (
             <p className="w-full max-w-[480px] text-xs text-zinc-500">
               ※プレビュー時はドラッグできません。編集モードで配置を調整してください。
@@ -412,6 +442,46 @@ function BottomSheet({
           {children}
         </div>
       </div>
+    </div>
+  );
+}
+
+function PrintGuides({ scale }: { scale: number }) {
+  // 好みで調整（最初は固定でOK）
+  const bleed = 12; // 外側（危険エリア）
+  const safe = 18; // 内側（安全域）
+
+  return (
+    <div className="pointer-events-none absolute inset-0">
+      {/* スケール表示 */}
+      <div className="absolute right-2 top-2 rounded-md bg-white/80 px-2 py-1 text-xs text-zinc-800">
+        {Math.round(scale * 100)}%
+      </div>
+
+      {/* 仕上がり（トリム） */}
+      <div className="absolute inset-0 border border-zinc-700/30" />
+
+      {/* 危険エリア */}
+      <div
+        className="absolute border border-red-500/60"
+        style={{
+          left: bleed * scale,
+          top: bleed * scale,
+          right: bleed * scale,
+          bottom: bleed * scale,
+        }}
+      />
+
+      {/* 安全域 */}
+      <div
+        className="absolute border border-blue-500/60"
+        style={{
+          left: safe * scale,
+          top: safe * scale,
+          right: safe * scale,
+          bottom: safe * scale,
+        }}
+      />
     </div>
   );
 }
