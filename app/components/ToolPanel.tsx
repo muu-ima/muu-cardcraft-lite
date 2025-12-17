@@ -1,5 +1,4 @@
 // @/app/components/ToolPanel.tsx
-
 "use client";
 
 import type { Block } from "@/hooks/useCardBlocks";
@@ -16,6 +15,8 @@ type Props = {
   open: boolean;
   onClose: () => void;
   activeTab: TabKey | null;
+
+  variant?: "desktop" | "sheet";
 
   side: Side;
   onChangeSide: (side: Side) => void;
@@ -38,6 +39,63 @@ type Props = {
   ) => void;
 };
 
+function Section({
+  title,
+  desc,
+  children,
+}: {
+  title: string;
+  desc?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border bg-white p-4 shadow-sm">
+      <div className="mb-3">
+        <p className="text-sm font-medium text-zinc-900">{title}</p>
+        {desc && <p className="mt-1 text-xs text-zinc-500">{desc}</p>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function SideToggle({
+  side,
+  onChangeSide,
+}: {
+  side: Side;
+  onChangeSide: (s: Side) => void;
+}) {
+  return (
+    <div className="inline-flex rounded-xl border bg-white p-1">
+      <button
+        type="button"
+        onClick={() => onChangeSide("front")}
+        className={[
+          "px-3 py-1.5 text-sm rounded-lg transition",
+          side === "front"
+            ? "bg-blue-600/10 text-blue-700"
+            : "text-zinc-600 hover:bg-zinc-900/5",
+        ].join(" ")}
+      >
+        表面
+      </button>
+      <button
+        type="button"
+        onClick={() => onChangeSide("back")}
+        className={[
+          "px-3 py-1.5 text-sm rounded-lg transition",
+          side === "back"
+            ? "bg-blue-600/10 text-blue-700"
+            : "text-zinc-600 hover:bg-zinc-900/5",
+        ].join(" ")}
+      >
+        裏面
+      </button>
+    </div>
+  );
+}
+
 export default function ToolPanel({
   open,
   onClose,
@@ -51,81 +109,89 @@ export default function ToolPanel({
   design,
   onChangeDesign,
   onDownload,
+  variant = "desktop",
 }: Props) {
   // ✅ open と activeTab を一致させる（事故防止）
   if (!open || !activeTab) return null;
 
+  const showHeader = variant !== "sheet"; // ✅ sheet の時はヘッダー無し
+
   const title =
-    activeTab === "text"
-      ? "テキスト"
-      : activeTab === "design"
+    activeTab === "design"
       ? "デザイン"
+      : activeTab === "text"
+      ? "テキスト"
       : activeTab === "export"
       ? "書き出し"
-      : "パネル";
+      : "編集";
 
   return (
-    <aside className="fixed left-14 top-14 z-30 h-[calc(100vh-56px)] w-[360px] border-r bg-white/70 backdrop-blur">
-      <div className="flex items-center justify-between border-b px-3 py-2">
-        <p className="text-xs text-zinc-500">{title}</p>
-
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-lg px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-900/5"
-        >
-          閉じる
-        </button>
-      </div>
-
-      <div className="h-[calc(100%-41px)] overflow-y-auto p-4">
-        {activeTab === "text" && (
-          <div className="mb-4">
-            <p className="mb-2 text-xs text-zinc-500">編集する面</p>
-            <div className="inline-flex rounded-xl border bg-white p-1">
+    // ✅ xl以上だけ「左固定パネル」、xl未満は「普通のコンテンツ」
+    <aside
+      className={[
+        "w-full",
+        "xl:fixed xl:left-14 xl:top-14 xl:z-30",
+        "xl:h-[calc(100vh-56px)] xl:w-[360px] xl:border-r",
+        "xl:bg-white/70 xl:backdrop-blur",
+      ].join(" ")}
+    >
+      {/* ✅ 見出し：BottomSheetでも上に残る */}
+      <div className="sticky top-0 z-10 -mx-4 mb-3 border-b bg-white/90 px-4 py-3 backdrop-blur xl:mx-0 xl:mb-0 xl:bg-transparent xl:px-3 xl:py-2">
+        {/* ✅ showHeader のときだけ描画する */}
+        {showHeader && (
+          <div className="sticky top-0 z-10 border-b bg-white/90 px-4 py-3 backdrop-blur xl:bg-transparent xl:px-3 xl:py-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-semibold">{title}</div>
               <button
                 type="button"
-                onClick={() => onChangeSide("front")}
-                className={[
-                  "px-3 py-1.5 text-sm rounded-lg transition",
-                  side === "front"
-                    ? "bg-blue-600/10 text-blue-700"
-                    : "text-zinc-600 hover:bg-zinc-900/5",
-                ].join(" ")}
+                onClick={onClose}
+                className="rounded-lg px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-900/5"
               >
-                表面
-              </button>
-              <button
-                type="button"
-                onClick={() => onChangeSide("back")}
-                className={[
-                  "px-3 py-1.5 text-sm rounded-lg transition",
-                  side === "back"
-                    ? "bg-blue-600/10 text-blue-700"
-                    : "text-zinc-600 hover:bg-zinc-900/5",
-                ].join(" ")}
-              >
-                裏面
+                閉じる
               </button>
             </div>
           </div>
         )}
+      </div>
 
+      {/* ✅ 本文：Desktopはパネル内スクロール、MobileはBottomSheet側でスクロール */}
+      <div
+        className={[
+          "overflow-y-auto p-4",
+          variant === "desktop" ? "h-[calc(100%-41px)]" : "h-full",
+        ].join(" ")}
+      >
+        {" "}
         {activeTab === "text" && (
-          <TextTab
-            blocks={blocks}
-            isPreview={isPreview}
-            onChangeText={onChangeText}
-            onTogglePreview={onTogglePreview}
-          />
+          <Section title="編集する面" desc="表面 / 裏面 を切り替えます。">
+            <SideToggle side={side} onChangeSide={onChangeSide} />
+          </Section>
         )}
-
+        {activeTab === "text" && (
+          <Section
+            title="テキスト編集"
+            desc="内容を入力してプレビューで確認できます。"
+          >
+            <TextTab
+              blocks={blocks}
+              isPreview={isPreview}
+              onChangeText={onChangeText}
+              onTogglePreview={onTogglePreview}
+            />
+          </Section>
+        )}
         {activeTab === "design" && (
-          <DesignTab value={design} onChange={onChangeDesign} />
+          <Section
+            title="背景デザイン"
+            desc="カードの背景デザインを選択します。"
+          >
+            <DesignTab value={design} onChange={onChangeDesign} />
+          </Section>
         )}
-
         {activeTab === "export" && (
-          <ExportTab design={design} onDownload={onDownload} />
+          <Section title="書き出し" desc="画像として保存します。">
+            <ExportTab design={design} onDownload={onDownload} />
+          </Section>
         )}
       </div>
     </aside>
