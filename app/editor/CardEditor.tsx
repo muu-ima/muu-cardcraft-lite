@@ -17,6 +17,7 @@ type Side = "front" | "back";
 export default function CardEditor() {
   const [side, setSide] = useState<Side>("back");
   const [activeTab, setActiveTab] = useState<TabKey | null>(null);
+  const panelVisible = activeTab !== null;
   const [isPreview, setIsPreview] = useState(false);
 
   const [design, setDesign] = useState<DesignKey>("plain");
@@ -82,18 +83,27 @@ export default function CardEditor() {
       scale,
       previewScale,
     });
-  }, [isPreview, design, side, activeTab, scale, previewScale, canvasRef, previewWrapRef]);
+  }, [
+    isPreview,
+    design,
+    side,
+    activeTab,
+    scale,
+    previewScale,
+    canvasRef,
+    previewWrapRef,
+  ]);
 
   return (
     <div className="relative h-full w-full bg-[#eef4ff]">
       {/* ★ヘッダー分(56px)は上に空ける */}
-      <div className="fixed left-0 top-14 z-40 h-[calc(100vh-56px)] w-14 border-r bg-white/70 backdrop-blur">
+      <div className="fixed left-0 top-14 z-40 h-[calc(100vh-56px)] w-14 border-r bg-white/70 backdrop-blur hidden xl:block">
         <Toolbar activeTab={activeTab} onChange={onChangeTab} />
       </div>
 
       <ToolPanel
         open={activeTab !== null}
-        onClose={() => setActiveTab(null)}  // ✅ここが重要
+        onClose={() => setActiveTab(null)} // ✅ここが重要
         activeTab={activeTab}
         side={side}
         onChangeSide={setSide}
@@ -109,57 +119,77 @@ export default function CardEditor() {
         onDownload={(format, d) => downloadImage(format, d)}
       />
 
-      <CanvasArea innerRef={canvasRef}>
-        <section className={isPreview ? "space-y-12" : "space-y-10"}>
-          {/* 表面 */}
-          <div className={isPreview ? "opacity-80" : ""}>
-            <p className="mb-2 text-sm text-zinc-600">表面</p>
-
-            <CardSurface
-              blocks={getBlocksFor("front")}
-              design={design}
-              interactive={false}
-              style={{
-                transform: `scale(${scale})`,
-                transformOrigin: "top left",
-              }}
-              className={isPreview ? "shadow-lg" : ""}
-            />
+      <CanvasArea innerRef={canvasRef} panelVisible={panelVisible}>
+        {/* 表/裏トグル（キャンバス上） */}
+        <div className="mb-5 flex items-center justify-center">
+          <div className="inline-flex rounded-xl border bg-white/80 p-1 backdrop-blur">
+            <button
+              type="button"
+              onClick={() => setSide("front")}
+              className={[
+                "px-3 py-1.5 text-sm rounded-lg transition",
+                side === "front"
+                  ? "bg-blue-600/10 text-blue-700"
+                  : "text-zinc-600 hover:bg-zinc-900/5",
+              ].join(" ")}
+            >
+              表面
+            </button>
+            <button
+              type="button"
+              onClick={() => setSide("back")}
+              className={[
+                "px-3 py-1.5 text-sm rounded-lg transition",
+                side === "back"
+                  ? "bg-blue-600/10 text-blue-700"
+                  : "text-zinc-600 hover:bg-zinc-900/5",
+              ].join(" ")}
+            >
+              裏面
+            </button>
           </div>
+        </div>
 
-          {/* 裏面 */}
-          <div>
-            <p className="mb-2 text-sm text-zinc-600">
-              裏面{isPreview ? "（プレビュー）" : "（編集：ドラッグ可能）"}
+        {/* ✅ ここがCanva化：1枚だけ表示 */}
+        <section className="flex flex-col items-center gap-3">
+          <p className="w-full max-w-[480px] text-sm text-zinc-600">
+            {side === "front" ? "表面" : "裏面"}
+            {isPreview ? "（プレビュー）" : "（編集）"}
+          </p>
+
+          <CardSurface
+            blocks={getBlocksFor(side)}
+            design={design}
+            interactive={!isPreview}
+            onBlockPointerDown={(e, id) => handlePointerDown(e, id, { scale })}
+            cardRef={cardRef}
+            blockRefs={blockRefs}
+            style={{
+              transform: `scale(${scale})`,
+              transformOrigin: "top center",
+            }}
+            className={isPreview ? "shadow-lg" : ""}
+          />
+
+          {!isPreview && (
+            <p className="w-full max-w-[480px] text-xs text-zinc-500">
+              ※プレビュー時はドラッグできません。編集モードで配置を調整してください。
             </p>
-
-            <CardSurface
-              blocks={getBlocksFor("back")}
-              design={design}
-              interactive={!isPreview}
-              onBlockPointerDown={(e, id) => handlePointerDown(e, id, { scale })}
-              cardRef={cardRef}
-              blockRefs={blockRefs}
-              style={{
-                transform: `scale(${scale})`,
-                transformOrigin: "top left",
-              }}
-              className={isPreview ? "ring-2 ring-blue-500/20 shadow-lg" : ""}
-            />
-
-            {!isPreview && (
-              <p className="mt-2 text-xs text-zinc-500">
-                ※プレビュー時はドラッグできません。編集モードで配置を調整してください。
-              </p>
-            )}
-          </div>
+          )}
         </section>
       </CanvasArea>
 
-      <ModalPreview open={isPreview} onClose={() => setIsPreview(false)} title="プレビュー">
+      <ModalPreview
+        open={isPreview}
+        onClose={() => setIsPreview(false)}
+        title="プレビュー"
+      >
         <div className="w-full flex justify-center">
           <div ref={previewWrapRef} className="w-full flex justify-center">
-            <div className="overflow-hidden" style={{ width: scaledW, height: scaledH }}>
+            <div
+              className="overflow-hidden"
+              style={{ width: scaledW, height: scaledH }}
+            >
               <div
                 style={{
                   width: PREVIEW_W,
@@ -186,14 +216,36 @@ export default function CardEditor() {
 function CanvasArea({
   children,
   innerRef,
+  panelVisible,
 }: {
   children: React.ReactNode;
   innerRef: React.RefObject<HTMLDivElement | null>;
+  panelVisible: boolean;
 }) {
   return (
-    <main className="ml-14 h-[calc(100vh-56px)] min-w-0 overflow-y-auto px-3 sm:px-6 lg:px-10 py-8">
-      <div ref={innerRef} className="mx-auto w-full max-w-4xl">
-        {children}
+    <main
+      className={[
+        "ml-0", // ✅ モバイルは常に0
+        panelVisible ? "xl:ml-[416px]" : "xl:ml-14",
+        "h-[calc(100vh-56px)]",
+        "min-w-0 overflow-y-auto overflow-x-hidden",
+        "min-w-0 overflow-y-auto",
+        "px-3 sm:px-6 lg:px-10 py-8",
+        "flex justify-center",
+        "transition-[margin] duration-200 ease-out",
+      ].join(" ")}
+    >
+      {/* ✅ ここでズレを相殺する */}
+      <div
+        className={[
+          "w-full flex justify-center",
+          "transition-transform duration-200 ease-out transform-gpu",
+          panelVisible ? "md:-translate-x-[180px]" : "translate-x-0",
+        ].join(" ")}
+      >
+        <div ref={innerRef} className="w-full max-w-[480px] min-w-0">
+          {children}
+        </div>
       </div>
     </main>
   );
