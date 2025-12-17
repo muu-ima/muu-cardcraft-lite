@@ -309,14 +309,13 @@ function CanvasArea({
         "px-3 sm:px-6 lg:px-10 py-8",
         "pb-24 xl:pb-0", // ✅ 追加：モバイル下バー分の余白
         "flex justify-center",
-        "transition-[margin] duration-200 ease-out",
+        "transition-none",
       ].join(" ")}
     >
       {/* ✅ ここでズレを相殺する */}
       <div
         className={[
           "w-full flex justify-center",
-          "transition-transform duration-200 ease-out transform-gpu",
           panelVisible ? "xl:-translate-x-[180px]" : "translate-x-0",
         ].join(" ")}
       >
