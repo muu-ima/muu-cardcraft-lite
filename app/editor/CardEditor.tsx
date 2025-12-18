@@ -12,6 +12,7 @@ import EditorCanvas from "@/app/components/editor/EditorCanvas";
 
 import { useScaleToFit } from "@/hooks/useScaleToFit";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
+import { useEditorLayout } from "@/hooks/useEditorLayout";
 import { type DesignKey } from "@/shared/design";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
 import type { TabKey } from "@/shared/editor";
@@ -21,7 +22,6 @@ type Side = "front" | "back";
 export default function CardEditor() {
   const [side, setSide] = useState<Side>("back");
   const [activeTab, setActiveTab] = useState<TabKey | null>(null);
-  const panelVisible = activeTab !== null;
   const [isPreview, setIsPreview] = useState(false);
 
   const [design, setDesign] = useState<DesignKey>("plain");
@@ -42,11 +42,13 @@ export default function CardEditor() {
     isPreview
   );
 
-  const PREVIEW_W = 480;
-  const PREVIEW_H = 260;
+  const { panelVisible, sheetTitle, previewSize } = useEditorLayout({
+    activeTab,
+    isPreview,
+  });
 
-  const scaledW = PREVIEW_W * previewScale;
-  const scaledH = PREVIEW_H * previewScale;
+  const scaledW = previewSize.w * previewScale;
+  const scaledH = previewSize.h * previewScale;
 
   const {
     blocks: editableBlocks,
@@ -98,15 +100,6 @@ export default function CardEditor() {
     canvasRef,
     previewWrapRef,
   ]);
-
-  const sheetTitle =
-    activeTab === "design"
-      ? "デザイン"
-      : activeTab === "text"
-      ? "テキスト"
-      : activeTab === "export"
-      ? "書き出し"
-      : "編集";
 
   return (
     <div className="relative h-full w-full bg-[#eef4ff]">
@@ -234,8 +227,8 @@ export default function CardEditor() {
             >
               <div
                 style={{
-                  width: PREVIEW_W,
-                  height: PREVIEW_H,
+                  width: previewSize.w,
+                  height: previewSize.h,
                   transform: `scale(${previewScale})`,
                   transformOrigin: "top left",
                 }}
