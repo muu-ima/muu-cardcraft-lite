@@ -8,8 +8,7 @@ import ToolPanel from "@/app/components/ToolPanel";
 import CanvasArea from "@/app/components/editor/CanvasArea";
 import BottomSheet from "@/app/components/editor/BottomSheet";
 import MobileBottomBar from "@/app/components/editor/MobileBottomBar";
-import PrintGuides from "@/app/components/editor/PrintGuides";
-
+import EditorCanvas from "@/app/components/editor/EditorCanvas";
 
 import { useScaleToFit } from "@/hooks/useScaleToFit";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
@@ -42,9 +41,6 @@ export default function CardEditor() {
     480,
     isPreview
   );
-
-  const EXPORT_W = 480;
-  const EXPORT_H = 260;
 
   const PREVIEW_W = 480;
   const PREVIEW_H = 260;
@@ -213,49 +209,16 @@ export default function CardEditor() {
           </div>
         </div>
 
-        {/* ✅ ここがCanva化：1枚だけ表示 */}
-        <section className="flex flex-col items-center gap-3">
-          <p className="w-full max-w-[480px] text-sm text-zinc-600">
-            {side === "front" ? "表面" : "裏面"}
-            {isPreview ? "（プレビュー）" : "（編集）"}
-          </p>
-          {/* ✅ スケール枠 + ガイド（Canva風） */}
-          <div
-            className="relative mx-auto"
-            style={{
-              width: EXPORT_W * scale,
-              height: EXPORT_H * scale,
-            }}
-          >
-            <div
-              style={{
-                width: EXPORT_W,
-                height: EXPORT_H,
-                transform: `scale(${scale})`,
-                transformOrigin: "top left",
-              }}
-            >
-              <CardSurface
-                blocks={getBlocksFor(side)}
-                design={design}
-                interactive={!isPreview}
-                onBlockPointerDown={(e, id) =>
-                  handlePointerDown(e, id, { scale })
-                }
-                cardRef={cardRef}
-                blockRefs={blockRefs}
-                className={isPreview ? "shadow-lg" : ""}
-              />
-            </div>
-            {/* ✅ ガイドは“表示だけ” */}
-            {showGuides && <PrintGuides scale={scale} />}
-          </div>
-          {!isPreview && (
-            <p className="w-full max-w-[480px] text-xs text-zinc-500">
-              ※プレビュー時はドラッグできません。編集モードで配置を調整してください。
-            </p>
-          )}
-        </section>
+        <EditorCanvas
+          blocks={getBlocksFor(side)}
+          design={design}
+          scale={scale}
+          isPreview={isPreview}
+          showGuides={showGuides}
+          onPointerDown={handlePointerDown}
+          cardRef={cardRef}
+          blockRefs={blockRefs}
+        />
       </CanvasArea>
 
       <ModalPreview
@@ -294,4 +257,3 @@ export default function CardEditor() {
     </div>
   );
 }
-
