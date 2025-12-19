@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import ModalPreview from "@/app/components/ModalPreview";
 import Toolbar from "@/app/components/Toolbar";
 import CardSurface from "@/app/components/CardSurface";
@@ -9,6 +9,7 @@ import CanvasArea from "@/app/components/editor/CanvasArea";
 import BottomSheet from "@/app/components/editor/BottomSheet";
 import MobileBottomBar from "@/app/components/editor/MobileBottomBar";
 import EditorCanvas from "@/app/components/editor/EditorCanvas";
+import ExportSurface from "@/app/components/ExportSurface";
 
 import { useScaleToFit } from "@/hooks/useScaleToFit";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
@@ -30,6 +31,7 @@ export default function CardEditor() {
   });
   const [design, setDesign] = useState<DesignKey>("plain");
   const [showGuides, setShowGuides] = useState(true);
+  const exportRef = useRef<HTMLDivElement | null>(null);
 
   // ✅ 同じタブ押し = 閉じる / 別タブ = 切替
   const onChangeTab = (tab: TabKey) => {
@@ -87,7 +89,10 @@ export default function CardEditor() {
           design={design}
           onChangeDesign={setDesign}
           fontFamily="default"
-          onDownload={(format, d) => downloadImage(format, d)}
+          onDownload={(format) => {
+            if (!exportRef.current) return;
+            downloadImage(format, exportRef.current);
+          }}
         />
       </div>
 
@@ -112,7 +117,10 @@ export default function CardEditor() {
             design={design}
             onChangeDesign={setDesign}
             fontFamily="default"
-            onDownload={(format, d) => downloadImage(format, d)}
+            onDownload={(format) => {
+              if (!exportRef.current) return;
+              downloadImage(format, exportRef.current);
+            }}
           />
         </BottomSheet>
       </div>
@@ -202,6 +210,11 @@ export default function CardEditor() {
       {!isPreview && (
         <MobileBottomBar activeTab={activeTab} onChangeTab={onChangeTab} />
       )}
+      <ExportSurface
+        ref={exportRef}
+        blocks={getBlocksFor(side)}
+        design={design}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useHistoryState } from "@/hooks/History";
 import { DesignKey } from "@/shared/design";
 import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
+import { toPng, toJpeg } from "html-to-image";
 
 type DragOptions = {
   disabled?: boolean;
@@ -300,49 +301,37 @@ export function useCardBlocks() {
   };
 
   // 画像書き出し
-  const downloadImage = async (format: "png" | "jpeg", design: DesignKey) => {
-    // cardRef の存在チェックは不要でもいいが、残してOK
-    // if (!cardRef.current) return;
-
-    const width = CARD_BASE_W;
-    const height = CARD_BASE_H;
-
-    const canvas = document.createElement("canvas");
-    canvas.width = width * 2;
-    canvas.height = height * 2;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    ctx.scale(2, 2);
-
-    const conf = CARD_DESIGNS[design];
-
-    ctx.fillStyle = conf.bgColor ?? "#ffffff";
-    ctx.fillRect(0, 0, width, height);
-
-    if (conf.image) {
-      try {
-        const img = await loadImage(conf.image);
-        drawCoverOrContainImage(ctx, img, conf.mode ?? "cover", width, height);
-      } catch (e) {
-        console.error(e);
-      }
+  const downloadImage = async (
+    format: "png" | "jpeg",
+    exportEl: HTMLElement
+  ) => {
+    // フォント反映待ち
+    // @ts-ignore
+    if (document.fonts?.ready) {
+      // @ts-ignore
+      await document.fonts.ready;
     }
+    await new Promise((r) => requestAnimationFrame(() => r(null)));
 
-    blocks.forEach((b) => {
-      const base = `${b.fontSize}px sans-serif`;
-      ctx.font = b.fontWeight === "bold" ? `bold ${base}` : base;
-      ctx.fillStyle = "#1a1a1a";
-      ctx.fillText(b.text, b.x, b.y + b.fontSize);
-    });
+    const dataUrl =
+      format === "png"
+        ? await toPng(exportEl, {
+            width: CARD_BASE_W,
+            height: CARD_BASE_H,
+            pixelRatio: 2,
+            cacheBust: true,
+          })
+        : await toJpeg(exportEl, {
+            width: CARD_BASE_W,
+            height: CARD_BASE_H,
+            pixelRatio: 2,
+            quality: 0.92,
+            cacheBust: true,
+          });
 
     const link = document.createElement("a");
     link.download = `card.${format}`;
-    link.href =
-      format === "png"
-        ? canvas.toDataURL("image/png")
-        : canvas.toDataURL("image/jpeg", 0.92);
+    link.href = dataUrl;
     link.click();
   };
 
