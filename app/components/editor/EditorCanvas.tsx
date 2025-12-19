@@ -15,11 +15,11 @@ type Props = {
   scale: number;
   isPreview: boolean;
   showGuides: boolean;
-  onPointerDown: (
-    e: React.PointerEvent,
-    id: string,
-    opts: { scale: number }
-  ) => void;
+ onPointerDown?: (
+  e: React.PointerEvent,
+  id: string,
+  opts: { scale: number }
+) => void;
   cardRef: React.RefObject<HTMLDivElement | null>;
   blockRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
 };
@@ -55,7 +55,7 @@ export default function EditorCanvas({
             blocks={blocks}
             design={design}
             interactive={!isPreview}
-            onBlockPointerDown={(e, id) => onPointerDown(e, id, { scale })}
+            onBlockPointerDown={(e, id) => onPointerDown?.(e, id, { scale })}
             cardRef={cardRef}
             blockRefs={blockRefs}
             className={isPreview ? "shadow-lg" : ""}

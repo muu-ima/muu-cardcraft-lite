@@ -59,22 +59,15 @@ export default function CardEditor() {
     downloadImage,
   } = useCardBlocks();
 
-  const [frontEditableBlocks, setFrontEditableBlocks] = useState(
-    activeDesign.front.blocks
-  );
-
-  useEffect(() => {
-    setFrontEditableBlocks(CARD_FULL_DESIGNS[design].front.blocks);
-  }, [design]);
-
-  const updateFrontText = (id: string, text: string) => {
-    setFrontEditableBlocks((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, text } : b))
-    );
-  };
-
   const getBlocksFor = (s: Side) =>
-    s === "front" ? frontEditableBlocks : editableBlocks;
+    s === "front"
+      ? editableBlocks // ← 編集できる真実を表へ
+      : CARD_FULL_DESIGNS[design].back.blocks; // ← 裏は固定
+
+  const onChangeText = (id: string, value: string) => {
+    if (side !== "front") return;
+    updateText(id, value);
+  };
 
   useEffect(() => {
     const canvasW = canvasRef.current?.clientWidth ?? null;
@@ -118,11 +111,7 @@ export default function CardEditor() {
           onChangeSide={setSide}
           blocks={getBlocksFor(side)}
           isPreview={isPreview}
-          onChangeText={(id, value) =>
-            side === "front"
-              ? updateFrontText(id, value)
-              : updateText(id, value)
-          }
+          onChangeText={onChangeText}
           onTogglePreview={() => setIsPreview((v) => !v)}
           design={design}
           onChangeDesign={setDesign}
@@ -147,11 +136,7 @@ export default function CardEditor() {
             onChangeSide={setSide}
             blocks={getBlocksFor(side)}
             isPreview={isPreview}
-            onChangeText={(id, value) =>
-              side === "front"
-                ? updateFrontText(id, value)
-                : updateText(id, value)
-            }
+            onChangeText={onChangeText}
             onTogglePreview={() => setIsPreview((v) => !v)}
             design={design}
             onChangeDesign={setDesign}
@@ -208,7 +193,7 @@ export default function CardEditor() {
           scale={scale}
           isPreview={isPreview}
           showGuides={showGuides}
-          onPointerDown={handlePointerDown}
+          onPointerDown={side === "front" ? handlePointerDown : undefined}
           cardRef={cardRef}
           blockRefs={blockRefs}
         />
