@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useHistoryState } from "@/hooks/History";
 import { DesignKey } from "@/shared/design";
+import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
 
 type DragOptions = {
   disabled?: boolean;
@@ -184,8 +185,8 @@ export function useCardBlocks() {
 
   // ドラッグ中の座標更新
   useEffect(() => {
-    const BASE_W = 480;
-    const BASE_H = 260;
+    const BASE_W = CARD_BASE_W;
+    const BASE_H = CARD_BASE_H;
 
     const handleMove = (e: PointerEvent) => {
       if (!isDragging || !dragTargetId || !cardRef.current) return;
@@ -215,7 +216,11 @@ export function useCardBlocks() {
 
       // BASE基準で clamp
       const maxX = BASE_W - textWidth;
-      const maxY = BASE_H - 20;
+
+      // ドラッグ対象ブロックの「文字の高さ」を使って、下端はみ出しを防ぐ
+      const targetBlock = blocksRef.current.find((b) => b.id === dragTargetId);
+      const approxTextHeight = targetBlock?.fontSize ?? 20; // fontSize ≒ 文字の高さ(ざっくり)
+      const maxY = BASE_H - approxTextHeight;
 
       const newX = Math.max(0, Math.min(maxX, rawX));
       const newY = Math.max(0, Math.min(maxY, rawY));
@@ -294,16 +299,13 @@ export function useCardBlocks() {
     ctx.drawImage(img, dx, dy, drawW, drawH);
   };
 
-  const EXPORT_W = 480;
-  const EXPORT_H = 260;
-
   // 画像書き出し
   const downloadImage = async (format: "png" | "jpeg", design: DesignKey) => {
     // cardRef の存在チェックは不要でもいいが、残してOK
     // if (!cardRef.current) return;
 
-    const width = EXPORT_W;
-    const height = EXPORT_H;
+    const width = CARD_BASE_W;
+    const height = CARD_BASE_H;
 
     const canvas = document.createElement("canvas");
     canvas.width = width * 2;

@@ -11,6 +11,9 @@ type CardSurfaceProps = {
   blocks: Block[];
   design: DesignKey;
 
+  w: number;
+  h: number;
+
   /** 編集可能か (ドラッグ有無) */
   interactive?: boolean;
 
@@ -29,9 +32,6 @@ type CardSurfaceProps = {
   style?: CSSProperties;
 };
 
-const BASE_W = 480;
-const BASE_H = 260;
-
 function getCardStyle(design: DesignKey): CSSProperties {
   const bg = CARD_FULL_DESIGNS[design].bg;
 
@@ -49,6 +49,8 @@ function getCardStyle(design: DesignKey): CSSProperties {
 export default function CardSurface({
   blocks,
   design,
+  w,
+  h,
   interactive = false,
   onBlockPointerDown,
   cardRef,
@@ -60,8 +62,8 @@ export default function CardSurface({
     <div
       ref={cardRef}
       style={{
-        width: BASE_W,
-        height: BASE_H,
+        width: w,
+        height: h,
         position: "relative",
         ...getCardStyle(design),
         ...style,
