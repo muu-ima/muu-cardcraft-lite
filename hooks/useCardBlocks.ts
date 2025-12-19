@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useHistoryState } from "@/hooks/History";
 import { DesignKey } from "@/shared/design";
 
 type DragOptions = {
