@@ -55,16 +55,16 @@ export default function EditorCanvas({
             blocks={blocks}
             design={design}
             interactive={!isPreview}
-            onBlockPointerDown={(e, id) =>
-              onPointerDown(e, id, { scale })
-            }
+            onBlockPointerDown={(e, id) => onPointerDown(e, id, { scale })}
             cardRef={cardRef}
             blockRefs={blockRefs}
             className={isPreview ? "shadow-lg" : ""}
           />
         </div>
 
-        {showGuides && <PrintGuides scale={scale} />}
+        {showGuides && (
+          <PrintGuides scale={scale} cardW={EXPORT_W} cardH={EXPORT_H} />
+        )}
       </div>
 
       {!isPreview && (
