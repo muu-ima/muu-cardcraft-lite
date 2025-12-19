@@ -45,27 +45,50 @@ const CARD_DESIGNS: Record<
   },
 };
 
-export function useCardBlocks() {
-  // 初期ブロック
-  const [blocks, setBlocks] = useState<Block[]>([
-    {
-      id: "name",
-      text: "山田 太郎",
-      x: 100,
-      y: 120,
-      fontSize: 24,
-      fontWeight: "bold",
-    },
-    {
-      id: "title",
-      text: "デザイナー / Designer",
-      x: 100,
-      y: 80,
-      fontSize: 18,
-      fontWeight: "normal",
-    },
-  ]);
+// ✅ 初期ブロックは定数に（毎レンダリングで作らない）
+const INITIAL_BLOCKS: Block[] = [
+  {
+    id: "name",
+    text: "山田 太郎",
+    x: 100,
+    y: 120,
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  {
+    id: "title",
+    text: "デザイナー / Designer",
+    x: 100,
+    y: 80,
+    fontSize: 18,
+    fontWeight: "normal",
+  },
+];
 
+export function useCardBlocks() {
+  const {
+    present: blocks,
+    set,
+    commit,
+  } = useHistoryState<Block[]>(INITIAL_BLOCKS);
+
+  const blocksRef = useRef(blocks);
+  useEffect(() => {
+    blocksRef.current = blocks;
+  }, [blocks]);
+
+  const commitRef = useRef(commit);
+  useEffect(() => {
+    commitRef.current = commit;
+  }, [commit]);
+
+  const setRef = useRef(set);
+  useEffect(() => {
+    setRef.current = set;
+  }, [set]);
+
+  const movedRef = useRef(false);
+  const beforeDragRef = useRef<Block[] | null>(null);
   // ドラッグ状態
   const [isDragging, setIsDragging] = useState(false);
   const [dragTargetId, setDragTargetId] = useState<string | null>(null);
@@ -77,7 +100,7 @@ export function useCardBlocks() {
 
   // テキスト変更
   const updateText = (id: string, text: string) => {
-    setBlocks((prev) => prev.map((b) => (b.id === id ? { ...b, text } : b)));
+    set((prev) => prev.map((b) => (b.id === id ? { ...b, text } : b)));
   };
 
   const dragScaleRef = useRef(1);
@@ -89,6 +112,9 @@ export function useCardBlocks() {
     options?: DragOptions
   ) => {
     if (options?.disabled) return;
+
+    movedRef.current = false;
+    beforeDragRef.current = blocks.map((b) => ({ ...b })); // ✅ 開始時点を保存
 
     const scale = options?.scale ?? 1;
     dragScaleRef.current = scale;
@@ -124,6 +150,7 @@ export function useCardBlocks() {
     const handleMove = (e: PointerEvent) => {
       if (!isDragging || !dragTargetId || !cardRef.current) return;
 
+      movedRef.current = true;
       const scale = dragScaleRef.current;
       const cardRect = cardRef.current.getBoundingClientRect();
       const targetEl = blockRefs.current[dragTargetId];
@@ -146,7 +173,7 @@ export function useCardBlocks() {
       const newX = Math.max(0, Math.min(maxX, rawX));
       const newY = Math.max(0, Math.min(maxY, rawY));
 
-      setBlocks((prev) =>
+      setRef.current((prev) =>
         prev.map((b) =>
           b.id === dragTargetId ? { ...b, x: newX, y: newY } : b
         )
@@ -160,6 +187,14 @@ export function useCardBlocks() {
 
       setIsDragging(false);
       setDragTargetId(null);
+
+      if (movedRef.current && beforeDragRef.current) {
+        // ✅ 「開始前」を履歴に積む → Undoで開始前に戻る
+        commitRef.current(beforeDragRef.current);
+      }
+
+      movedRef.current = false;
+      beforeDragRef.current = null; // ✅ 必ず破棄
     };
 
     window.addEventListener("pointermove", handleMove);
