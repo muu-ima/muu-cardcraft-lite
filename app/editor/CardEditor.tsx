@@ -21,7 +21,7 @@ import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
 type Side = "front" | "back";
 
 export default function CardEditor() {
-  const [side, setSide] = useState<Side>("back");
+  const [side, setSide] = useState<Side>("front");
   const [activeTab, setActiveTab] = useState<TabKey | null>(null);
   const [isPreview, setIsPreview] = useState(false);
   const { panelVisible, sheetTitle } = useEditorLayout({
