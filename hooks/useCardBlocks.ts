@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useHistoryState } from "@/hooks/History";
 import { DesignKey } from "@/shared/design";
+import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
 
 type DragOptions = {
   disabled?: boolean;
@@ -45,27 +46,90 @@ const CARD_DESIGNS: Record<
   },
 };
 
-export function useCardBlocks() {
-  // 初期ブロック
-  const [blocks, setBlocks] = useState<Block[]>([
-    {
-      id: "name",
-      text: "山田 太郎",
-      x: 100,
-      y: 120,
-      fontSize: 24,
-      fontWeight: "bold",
-    },
-    {
-      id: "title",
-      text: "デザイナー / Designer",
-      x: 100,
-      y: 80,
-      fontSize: 18,
-      fontWeight: "normal",
-    },
-  ]);
+// ✅ 初期ブロックは定数に（毎レンダリングで作らない）
+const INITIAL_BLOCKS: Block[] = [
+  {
+    id: "name",
+    text: "山田 太郎",
+    x: 100,
+    y: 120,
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  {
+    id: "title",
+    text: "デザイナー / Designer",
+    x: 100,
+    y: 80,
+    fontSize: 18,
+    fontWeight: "normal",
+  },
+];
 
+export function useCardBlocks() {
+  const {
+    present: blocks,
+    set,
+    commit,
+    undo,
+    redo,
+  } = useHistoryState<Block[]>(INITIAL_BLOCKS);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+
+      // 入力中はブラウザ標準のUndoに任せる（重要）
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      const ctrlOrCmd = e.ctrlKey || e.metaKey;
+      if (!ctrlOrCmd) return;
+
+      // Ctrl/Cmd + Z
+      if (e.key.toLowerCase() === "z" && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+        return;
+      }
+
+      // Ctrl/Cmd + Shift + Z（or Ctrl/Cmd + Y）
+      if (
+        (e.key.toLowerCase() === "z" && e.shiftKey) ||
+        e.key.toLowerCase() === "y"
+      ) {
+        e.preventDefault();
+        redo();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [undo, redo]);
+
+  const blocksRef = useRef(blocks);
+  useEffect(() => {
+    blocksRef.current = blocks;
+  }, [blocks]);
+
+  const commitRef = useRef(commit);
+  useEffect(() => {
+    commitRef.current = commit;
+  }, [commit]);
+
+  const setRef = useRef(set);
+  useEffect(() => {
+    setRef.current = set;
+  }, [set]);
+
+  const movedRef = useRef(false);
+  const beforeDragRef = useRef<Block[] | null>(null);
   // ドラッグ状態
   const [isDragging, setIsDragging] = useState(false);
   const [dragTargetId, setDragTargetId] = useState<string | null>(null);
@@ -77,7 +141,7 @@ export function useCardBlocks() {
 
   // テキスト変更
   const updateText = (id: string, text: string) => {
-    setBlocks((prev) => prev.map((b) => (b.id === id ? { ...b, text } : b)));
+    set((prev) => prev.map((b) => (b.id === id ? { ...b, text } : b)));
   };
 
   const dragScaleRef = useRef(1);
@@ -89,6 +153,9 @@ export function useCardBlocks() {
     options?: DragOptions
   ) => {
     if (options?.disabled) return;
+
+    movedRef.current = false;
+    beforeDragRef.current = blocks.map((b) => ({ ...b })); // ✅ 開始時点を保存
 
     const scale = options?.scale ?? 1;
     dragScaleRef.current = scale;
@@ -118,11 +185,19 @@ export function useCardBlocks() {
 
   // ドラッグ中の座標更新
   useEffect(() => {
-    const BASE_W = 480;
-    const BASE_H = 260;
+    const BASE_W = CARD_BASE_W;
+    const BASE_H = CARD_BASE_H;
 
     const handleMove = (e: PointerEvent) => {
       if (!isDragging || !dragTargetId || !cardRef.current) return;
+
+      // ✅ 最初の移動だけ「開始前」を履歴に積む
+      if (!movedRef.current) {
+        if (beforeDragRef.current) {
+          commitRef.current(beforeDragRef.current);
+        }
+        movedRef.current = true;
+      }
 
       const scale = dragScaleRef.current;
       const cardRect = cardRef.current.getBoundingClientRect();
@@ -141,12 +216,16 @@ export function useCardBlocks() {
 
       // BASE基準で clamp
       const maxX = BASE_W - textWidth;
-      const maxY = BASE_H - 20;
+
+      // ドラッグ対象ブロックの「文字の高さ」を使って、下端はみ出しを防ぐ
+      const targetBlock = blocksRef.current.find((b) => b.id === dragTargetId);
+      const approxTextHeight = targetBlock?.fontSize ?? 20; // fontSize ≒ 文字の高さ(ざっくり)
+      const maxY = BASE_H - approxTextHeight;
 
       const newX = Math.max(0, Math.min(maxX, rawX));
       const newY = Math.max(0, Math.min(maxY, rawY));
 
-      setBlocks((prev) =>
+      setRef.current((prev) =>
         prev.map((b) =>
           b.id === dragTargetId ? { ...b, x: newX, y: newY } : b
         )
@@ -160,6 +239,9 @@ export function useCardBlocks() {
 
       setIsDragging(false);
       setDragTargetId(null);
+
+      movedRef.current = false;
+      beforeDragRef.current = null; // ✅ 必ず破棄
     };
 
     window.addEventListener("pointermove", handleMove);
@@ -217,16 +299,13 @@ export function useCardBlocks() {
     ctx.drawImage(img, dx, dy, drawW, drawH);
   };
 
-  const EXPORT_W = 480;
-  const EXPORT_H = 260;
-
   // 画像書き出し
   const downloadImage = async (format: "png" | "jpeg", design: DesignKey) => {
     // cardRef の存在チェックは不要でもいいが、残してOK
     // if (!cardRef.current) return;
 
-    const width = EXPORT_W;
-    const height = EXPORT_H;
+    const width = CARD_BASE_W;
+    const height = CARD_BASE_H;
 
     const canvas = document.createElement("canvas");
     canvas.width = width * 2;
@@ -274,5 +353,7 @@ export function useCardBlocks() {
     cardRef,
     blockRefs,
     downloadImage,
+    undo,
+    redo,
   };
 }

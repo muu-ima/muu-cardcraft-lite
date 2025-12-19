@@ -1,15 +1,58 @@
+// app/components/ModalPreview.tsx
 "use client";
 
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
 
 type ModalProps = {
   open: boolean;
   onClose: () => void;
   title?: string;
-  children: ReactNode;
+  children: (opts: { scale: number }) => ReactNode;
 };
 
-export default function ModalPreview({ open, onClose, title, children }: ModalProps) {
+export default function ModalPreview({
+  open,
+  onClose,
+  title,
+  children,
+}: ModalProps) {
+  // ✅ Hooks は常に呼ばれる（ここ重要）
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const [wrapSize, setWrapSize] = useState({ w: 0, h: 0 });
+
+  useEffect(() => {
+    if (!open) return; // ← effect の中でガードするのはOK
+
+    const el = wrapRef.current;
+    if (!el) return;
+
+    const update = () => {
+      const r = el.getBoundingClientRect();
+      setWrapSize({ w: r.width, h: r.height });
+    };
+
+    update();
+
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+
+    return () => ro.disconnect();
+  }, [open]);
+
+  const PREVIEW_PAD = 24;
+
+  const scale = useMemo(() => {
+    const s = Math.min(
+      (wrapSize.w - PREVIEW_PAD) / CARD_BASE_W,
+      (wrapSize.h - PREVIEW_PAD) / CARD_BASE_H,
+      1
+    );
+    return Math.max(0.1, s);
+  }, [wrapSize.w, wrapSize.h]);
+
+  // ✅ return null は Hooks の「後」
   if (!open) return null;
 
   return (
@@ -29,10 +72,13 @@ export default function ModalPreview({ open, onClose, title, children }: ModalPr
           </button>
         </div>
 
-        {/* Body (ここだけ伸び縮み＆必要ならスクロール) */}
+        {/* Body */}
         <div className="flex-1 overflow-auto px-3 py-3 sm:px-4 sm:py-4">
-          <div className="w-full flex items-center justify-center">
-            {children}
+          <div
+            ref={wrapRef}
+            className="w-full min-h-60 flex items-center justify-center"
+          >
+            {children({ scale })}
           </div>
         </div>
 

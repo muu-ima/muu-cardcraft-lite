@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import ModalPreview from "@/app/components/ModalPreview";
 import Toolbar from "@/app/components/Toolbar";
 import CardSurface from "@/app/components/CardSurface";
@@ -16,6 +16,7 @@ import { useEditorLayout } from "@/hooks/useEditorLayout";
 import { type DesignKey } from "@/shared/design";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
 import type { TabKey } from "@/shared/editor";
+import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
 
 type Side = "front" | "back";
 
@@ -23,9 +24,11 @@ export default function CardEditor() {
   const [side, setSide] = useState<Side>("back");
   const [activeTab, setActiveTab] = useState<TabKey | null>(null);
   const [isPreview, setIsPreview] = useState(false);
-
+  const { panelVisible, sheetTitle } = useEditorLayout({
+    activeTab,
+    isPreview,
+  });
   const [design, setDesign] = useState<DesignKey>("plain");
-  const activeDesign = CARD_FULL_DESIGNS[design];
   const [showGuides, setShowGuides] = useState(true);
 
   // ✅ 同じタブ押し = 閉じる / 別タブ = 切替
@@ -34,21 +37,7 @@ export default function CardEditor() {
   };
 
   // ★ CanvasArea内の幅でスケール作る（表面/裏面 共通）
-  const { ref: canvasRef, scale } = useScaleToFit(480, true);
-
-  // ★ モーダルはモーダル用に別スケール
-  const { ref: previewWrapRef, scale: previewScale } = useScaleToFit(
-    480,
-    isPreview
-  );
-
-  const { panelVisible, sheetTitle, previewSize } = useEditorLayout({
-    activeTab,
-    isPreview,
-  });
-
-  const scaledW = previewSize.w * previewScale;
-  const scaledH = previewSize.h * previewScale;
+  const { ref: canvasRef, scale } = useScaleToFit(CARD_BASE_W, true);
 
   const {
     blocks: editableBlocks,
@@ -57,6 +46,8 @@ export default function CardEditor() {
     cardRef,
     blockRefs,
     downloadImage,
+    undo,
+    redo,
   } = useCardBlocks();
 
   const getBlocksFor = (s: Side) =>
@@ -69,36 +60,16 @@ export default function CardEditor() {
     updateText(id, value);
   };
 
-  useEffect(() => {
-    const canvasW = canvasRef.current?.clientWidth ?? null;
-    const previewW = previewWrapRef.current?.clientWidth ?? null;
-
-    console.log("[SCALE]", {
-      isPreview,
-      design,
-      side,
-      activeTab,
-      canvasW,
-      previewW,
-      scale,
-      previewScale,
-    });
-  }, [
-    isPreview,
-    design,
-    side,
-    activeTab,
-    scale,
-    previewScale,
-    canvasRef,
-    previewWrapRef,
-  ]);
-
   return (
     <div className="relative h-full w-full bg-[#eef4ff]">
       {/* ★ヘッダー分(56px)は上に空ける */}
       <div className="fixed left-0 top-14 z-40 h-[calc(100vh-56px)] w-14 border-r bg-white/70 backdrop-blur hidden xl:block">
-        <Toolbar activeTab={activeTab} onChange={onChangeTab} />
+        <Toolbar
+          activeTab={activeTab}
+          onChange={onChangeTab}
+          onUndo={undo}
+          onRedo={redo}
+        />
       </div>
       <div className="hidden xl:block">
         {/* Desktop: xl以上は左パネル */}
@@ -198,37 +169,36 @@ export default function CardEditor() {
           blockRefs={blockRefs}
         />
       </CanvasArea>
-
       <ModalPreview
         open={isPreview}
         onClose={() => setIsPreview(false)}
         title="プレビュー"
       >
-        <div className="w-full flex justify-center">
-          <div ref={previewWrapRef} className="w-full flex justify-center">
+        {({ scale }) => (
+          <div
+            style={{ width: CARD_BASE_W * scale, height: CARD_BASE_H * scale }}
+          >
             <div
-              className="overflow-hidden"
-              style={{ width: scaledW, height: scaledH }}
+              style={{
+                width: CARD_BASE_W,
+                height: CARD_BASE_H,
+                transform: `scale(${scale})`,
+                transformOrigin: "top left",
+              }}
             >
-              <div
-                style={{
-                  width: previewSize.w,
-                  height: previewSize.h,
-                  transform: `scale(${previewScale})`,
-                  transformOrigin: "top left",
-                }}
-              >
-                <CardSurface
-                  blocks={getBlocksFor(side)}
-                  design={design}
-                  interactive={false}
-                  className="shadow-lg"
-                />
-              </div>
+              <CardSurface
+                blocks={getBlocksFor(side)}
+                design={design}
+                w={CARD_BASE_W}
+                h={CARD_BASE_H}
+                interactive={false}
+                className="shadow-lg"
+              />
             </div>
           </div>
-        </div>
+        )}
       </ModalPreview>
+
       {!isPreview && (
         <MobileBottomBar activeTab={activeTab} onChangeTab={onChangeTab} />
       )}
