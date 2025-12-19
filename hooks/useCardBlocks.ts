@@ -353,5 +353,7 @@ export function useCardBlocks() {
     cardRef,
     blockRefs,
     downloadImage,
+    undo,
+    redo,
   };
 }

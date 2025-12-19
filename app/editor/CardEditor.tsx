@@ -46,6 +46,8 @@ export default function CardEditor() {
     cardRef,
     blockRefs,
     downloadImage,
+    undo,
+    redo,
   } = useCardBlocks();
 
   const getBlocksFor = (s: Side) =>
@@ -62,7 +64,12 @@ export default function CardEditor() {
     <div className="relative h-full w-full bg-[#eef4ff]">
       {/* ★ヘッダー分(56px)は上に空ける */}
       <div className="fixed left-0 top-14 z-40 h-[calc(100vh-56px)] w-14 border-r bg-white/70 backdrop-blur hidden xl:block">
-        <Toolbar activeTab={activeTab} onChange={onChangeTab} />
+        <Toolbar
+          activeTab={activeTab}
+          onChange={onChangeTab}
+          onUndo={undo}
+          onRedo={redo}
+        />
       </div>
       <div className="hidden xl:block">
         {/* Desktop: xl以上は左パネル */}
