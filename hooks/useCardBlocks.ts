@@ -70,7 +70,47 @@ export function useCardBlocks() {
     present: blocks,
     set,
     commit,
+    undo,
+    redo,
   } = useHistoryState<Block[]>(INITIAL_BLOCKS);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+
+      // 入力中はブラウザ標準のUndoに任せる（重要）
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      const ctrlOrCmd = e.ctrlKey || e.metaKey;
+      if (!ctrlOrCmd) return;
+
+      // Ctrl/Cmd + Z
+      if (e.key.toLowerCase() === "z" && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+        return;
+      }
+
+      // Ctrl/Cmd + Shift + Z（or Ctrl/Cmd + Y）
+      if (
+        (e.key.toLowerCase() === "z" && e.shiftKey) ||
+        e.key.toLowerCase() === "y"
+      ) {
+        e.preventDefault();
+        redo();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [undo, redo]);
 
   const blocksRef = useRef(blocks);
   useEffect(() => {
@@ -150,7 +190,14 @@ export function useCardBlocks() {
     const handleMove = (e: PointerEvent) => {
       if (!isDragging || !dragTargetId || !cardRef.current) return;
 
-      movedRef.current = true;
+      // ✅ 最初の移動だけ「開始前」を履歴に積む
+      if (!movedRef.current) {
+        if (beforeDragRef.current) {
+          commitRef.current(beforeDragRef.current);
+        }
+        movedRef.current = true;
+      }
+
       const scale = dragScaleRef.current;
       const cardRect = cardRef.current.getBoundingClientRect();
       const targetEl = blockRefs.current[dragTargetId];
@@ -187,11 +234,6 @@ export function useCardBlocks() {
 
       setIsDragging(false);
       setDragTargetId(null);
-
-      if (movedRef.current && beforeDragRef.current) {
-        // ✅ 「開始前」を履歴に積む → Undoで開始前に戻る
-        commitRef.current(beforeDragRef.current);
-      }
 
       movedRef.current = false;
       beforeDragRef.current = null; // ✅ 必ず破棄
