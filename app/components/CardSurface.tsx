@@ -24,6 +24,9 @@ type CardSurfaceProps = {
     blockId: string
   ) => void;
 
+  /** 選択中ブロック */
+  activeBlockId?: string;
+
   /** editor / export 用 ref */
   cardRef?: RefObject<HTMLDivElement | null>;
   blockRefs?: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
@@ -54,6 +57,7 @@ export default function CardSurface({
   h,
   interactive = false,
   onBlockPointerDown,
+  activeBlockId,
   cardRef,
   blockRefs,
   className,
@@ -90,8 +94,12 @@ export default function CardSurface({
             top: block.y,
             left: block.x,
             cursor: interactive ? "move" : "default",
+            padding: "2px 4px", 
           }}
-          className="select-none whitespace-nowrap text-zinc-900 dark:text-zinc-50"
+          className={[
+            "select-none whitespace-nowrap text-zinc-900 dark:text-zinc-50",
+            activeBlockId === block.id ? "ring-2 ring-pink-400/70 rounded" : "",
+          ].join(" ")}
         >
           <span
             style={{

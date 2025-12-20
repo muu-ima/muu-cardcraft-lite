@@ -11,6 +11,7 @@ type Props = {
   blocks: Block[];
   design: DesignKey;
   scale: number;
+  activeBlockId?: string;
   isPreview: boolean;
   showGuides: boolean;
   onPointerDown?: (
@@ -29,6 +30,7 @@ export default function EditorCanvas({
   isPreview,
   showGuides,
   onPointerDown,
+  activeBlockId,
   cardRef,
   blockRefs,
 }: Props) {
@@ -56,6 +58,7 @@ export default function EditorCanvas({
             h={CARD_BASE_H}
             interactive={!isPreview}
             onBlockPointerDown={(e, id) => onPointerDown?.(e, id, { scale })}
+            activeBlockId={activeBlockId}
             cardRef={cardRef}
             blockRefs={blockRefs}
             className={isPreview ? "shadow-lg" : ""}

@@ -17,7 +17,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   activeTab: TabKey | null;
-
+  activeBlockId: string
   variant?: "desktop" | "sheet";
 
   side: Side;
@@ -110,6 +110,7 @@ export default function ToolPanel({
   open,
   onClose,
   activeTab,
+  activeBlockId,
   side,
   onChangeSide,
   blocks,
@@ -200,7 +201,7 @@ export default function ToolPanel({
           <Section title="フォント" desc="文字のフォントを選択します。">
             <FontTab
               value={blocks.find((b) => b.id === "name")?.fontKey ?? "sans"}
-              onChange={(font) => onChangeFont("name", font)}
+              onChange={(font) => onChangeFont(activeBlockId, font)}
             />
           </Section>
         )}
