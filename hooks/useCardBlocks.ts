@@ -6,7 +6,7 @@ import { useHistoryState } from "@/hooks/History";
 import { DesignKey } from "@/shared/design";
 import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
 import type { FontKey } from "@/shared/fonts";
-import { toPng, toJpeg } from "html-to-image";
+import { useExportImage } from "@/hooks/export/useExportImage";
 
 type DragOptions = {
   disabled?: boolean;
@@ -308,40 +308,8 @@ export function useCardBlocks() {
     ctx.drawImage(img, dx, dy, drawW, drawH);
   };
 
-  // 画像書き出し
-  const downloadImage = async (
-    format: "png" | "jpeg",
-    exportEl: HTMLElement
-  ) => {
-    // フォント反映待ち
-    if (document.fonts?.ready) {
-      await document.fonts.ready;
-    }
-
-    await new Promise((r) => requestAnimationFrame(() => r(null)));
-
-    const dataUrl =
-      format === "png"
-        ? await toPng(exportEl, {
-            width: CARD_BASE_W,
-            height: CARD_BASE_H,
-            pixelRatio: 2,
-            cacheBust: true,
-          })
-        : await toJpeg(exportEl, {
-            width: CARD_BASE_W,
-            height: CARD_BASE_H,
-            pixelRatio: 2,
-            quality: 0.92,
-            cacheBust: true,
-          });
-
-    const link = document.createElement("a");
-    link.download = `card.${format}`;
-    link.href = dataUrl;
-    link.click();
-  };
-
+  const { downloadImage } = useExportImage();
+  
   return {
     blocks,
     updateText,
