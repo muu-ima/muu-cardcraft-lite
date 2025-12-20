@@ -27,6 +27,7 @@ type Props = {
   blocks: Block[];
   isPreview: boolean;
   onChangeText: (id: string, value: string) => void;
+  onBumpFontSize?: (id: string, delta: number) => void;
 
   onTogglePreview: () => void;
 
@@ -36,7 +37,6 @@ type Props = {
   onChangeDesign: (design: DesignKey) => void;
 
   fontFamily: string;
-
   onDownload: (
     format: "png" | "jpeg",
     design: DesignKey,
@@ -119,6 +119,7 @@ export default function ToolPanel({
   isPreview,
   onChangeText,
   onChangeFont,
+  onBumpFontSize,
   onTogglePreview,
   design,
   onChangeDesign,
@@ -196,6 +197,7 @@ export default function ToolPanel({
               isPreview={isPreview}
               onAddBlock={onAddBlock}
               onChangeText={onChangeText}
+              onBumpFontSize={onBumpFontSize}
               onTogglePreview={onTogglePreview}
             />
           </Section>

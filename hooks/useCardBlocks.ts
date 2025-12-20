@@ -132,6 +132,25 @@ export function useCardBlocks() {
     set((prev) => prev.map((b) => (b.id === id ? { ...b, fontKey } : b)));
   };
 
+  const clamp = (v: number, min: number, max: number) =>
+    Math.max(min, Math.min(max, v));
+
+  const updateFontSize = (id: string, fontSize: number) => {
+    // ✅ 1クリック = 1履歴にしたいので、操作直前に今の状態を積む
+    commit(blocksRef.current);
+
+    const next = clamp(Math.round(fontSize), 8, 72);
+    set((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, fontSize: next } : b))
+    );
+  };
+
+  const bumpFontSize = (id: string, delta: number) => {
+    const cur = blocksRef.current.find((b) => b.id === id)?.fontSize ?? 16;
+
+    updateFontSize(id, cur + delta);
+  };
+
   const dragScaleRef = useRef(1);
 
   // マウスダウン開始
@@ -250,6 +269,8 @@ export function useCardBlocks() {
     addBlock,
     updateText,
     updateFont,
+    updateFontSize,
+    bumpFontSize,
     handlePointerDown,
     cardRef,
     blockRefs,

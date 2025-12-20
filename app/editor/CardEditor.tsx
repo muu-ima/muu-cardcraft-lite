@@ -47,6 +47,7 @@ export default function CardEditor() {
     addBlock,
     updateText,
     updateFont,
+    bumpFontSize,
     handlePointerDown: dragPointerDown,
     cardRef,
     blockRefs,
@@ -105,6 +106,7 @@ export default function CardEditor() {
           onAddBlock={addBlock}
           isPreview={isPreview}
           onChangeText={onChangeText}
+          onBumpFontSize={bumpFontSize}
           onTogglePreview={() => setIsPreview((v) => !v)}
           onChangeFont={updateFont}
           design={design}
@@ -138,6 +140,7 @@ export default function CardEditor() {
             onChangeText={onChangeText}
             onTogglePreview={() => setIsPreview((v) => !v)}
             onChangeFont={updateFont}
+            onBumpFontSize={bumpFontSize}
             design={design}
             onChangeDesign={setDesign}
             fontFamily="default"
