@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useHistoryState } from "@/hooks/History";
 import { DesignKey } from "@/shared/design";
 import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
+import type { FontKey } from "@/shared/fonts";
 import { toPng, toJpeg } from "html-to-image";
 
 type DragOptions = {
@@ -19,6 +20,7 @@ export type Block = {
   y: number;
   fontSize: number;
   fontWeight: "normal" | "bold";
+  fontKey: FontKey;
 };
 
 // とりあえずこのファイルにデザイン定義を持たせる（あとで shared/ に出してもOK）
@@ -56,6 +58,7 @@ const INITIAL_BLOCKS: Block[] = [
     y: 120,
     fontSize: 24,
     fontWeight: "bold",
+    fontKey: "serif",
   },
   {
     id: "title",
@@ -64,6 +67,7 @@ const INITIAL_BLOCKS: Block[] = [
     y: 80,
     fontSize: 18,
     fontWeight: "normal",
+    fontKey: "sans",
   },
 ];
 
@@ -143,6 +147,10 @@ export function useCardBlocks() {
   // テキスト変更
   const updateText = (id: string, text: string) => {
     set((prev) => prev.map((b) => (b.id === id ? { ...b, text } : b)));
+  };
+
+  const updateFont = (id: string, fontKey: FontKey) => {
+    set((prev) => prev.map((b) => (b.id === id ? { ...b, fontKey } : b)));
   };
 
   const dragScaleRef = useRef(1);
@@ -306,11 +314,10 @@ export function useCardBlocks() {
     exportEl: HTMLElement
   ) => {
     // フォント反映待ち
-    // @ts-ignore
     if (document.fonts?.ready) {
-      // @ts-ignore
       await document.fonts.ready;
     }
+
     await new Promise((r) => requestAnimationFrame(() => r(null)));
 
     const dataUrl =
@@ -338,6 +345,7 @@ export function useCardBlocks() {
   return {
     blocks,
     updateText,
+    updateFont, 
     handlePointerDown,
     cardRef,
     blockRefs,

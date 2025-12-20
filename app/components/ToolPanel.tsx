@@ -4,10 +4,12 @@
 import type { Block } from "@/hooks/useCardBlocks";
 import type { TabKey } from "@/shared/editor";
 import type { DesignKey } from "@/shared/design";
+import type { FontKey } from "@/shared/fonts";
 
 import TextTab from "@/app/components/tabs/TextTab";
 import DesignTab from "@/app/components/tabs/DesignTab";
 import ExportTab from "@/app/components/tabs/ExportTab";
+import FontTab from "@/app/components/tabs/FontTab";
 
 type Side = "front" | "back";
 
@@ -26,6 +28,8 @@ type Props = {
   onChangeText: (id: string, value: string) => void;
 
   onTogglePreview: () => void;
+
+  onChangeFont: (id: string, fontKey: FontKey) => void;
 
   design: DesignKey;
   onChangeDesign: (design: DesignKey) => void;
@@ -111,6 +115,7 @@ export default function ToolPanel({
   blocks,
   isPreview,
   onChangeText,
+  onChangeFont,
   onTogglePreview,
   design,
   onChangeDesign,
@@ -188,6 +193,14 @@ export default function ToolPanel({
               isPreview={isPreview}
               onChangeText={onChangeText}
               onTogglePreview={onTogglePreview}
+            />
+          </Section>
+        )}
+        {activeTab === "font" && (
+          <Section title="フォント" desc="文字のフォントを選択します。">
+            <FontTab
+              value={blocks.find((b) => b.id === "name")?.fontKey ?? "sans"}
+              onChange={(font) => onChangeFont("name", font)}
             />
           </Section>
         )}
