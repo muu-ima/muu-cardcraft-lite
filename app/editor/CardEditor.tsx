@@ -44,6 +44,7 @@ export default function CardEditor() {
   const {
     blocks: editableBlocks,
     updateText,
+    updateFont,
     handlePointerDown,
     cardRef,
     blockRefs,
@@ -92,6 +93,7 @@ export default function CardEditor() {
           isPreview={isPreview}
           onChangeText={onChangeText}
           onTogglePreview={() => setIsPreview((v) => !v)}
+          onChangeFont={updateFont}
           design={design}
           onChangeDesign={setDesign}
           fontFamily="default"
@@ -120,6 +122,7 @@ export default function CardEditor() {
             isPreview={isPreview}
             onChangeText={onChangeText}
             onTogglePreview={() => setIsPreview((v) => !v)}
+            onChangeFont={updateFont}
             design={design}
             onChangeDesign={setDesign}
             fontFamily="default"

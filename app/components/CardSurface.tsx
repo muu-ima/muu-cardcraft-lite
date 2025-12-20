@@ -5,6 +5,7 @@ import type { CSSProperties, RefObject } from "react";
 import type { Block } from "@/hooks/useCardBlocks";
 import type { DesignKey } from "@/shared/design";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
+import { FONT_DEFINITIONS } from "@/shared/fonts";
 import React from "react";
 
 type CardSurfaceProps = {
@@ -90,11 +91,19 @@ export default function CardSurface({
             left: block.x,
             cursor: interactive ? "move" : "default",
           }}
-          className={`select-none whitespace-nowrap text-zinc-900 dark:text-zinc-50 ${
-            block.fontWeight === "bold" ? "font-bold" : "font-normal"
-          }`}
+          className="select-none whitespace-nowrap text-zinc-900 dark:text-zinc-50"
         >
-          <span style={{ fontSize: `${block.fontSize}px` }}>{block.text}</span>
+          <span
+            style={{
+              fontSize: `${block.fontSize}px`,
+              fontWeight: block.fontWeight, // "normal" | "bold"
+              fontFamily:
+                FONT_DEFINITIONS[block.fontKey]?.css ??
+                FONT_DEFINITIONS.sans.css,
+            }}
+          >
+            {block.text}
+          </span>{" "}
         </div>
       ))}
     </div>
