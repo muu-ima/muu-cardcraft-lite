@@ -63,7 +63,13 @@ export default function CardEditor() {
   };
 
   return (
-    <div className="relative h-full w-full bg-[#eef4ff]">
+    <div
+      className="relative h-full w-full "
+      style={{
+        background:
+          "linear-gradient(135deg, #eef3f8 0%, #f7eef2 55%, #eef4ff 100%)",
+      }}
+    >
       {/* ★ヘッダー分(56px)は上に空ける */}
       <div className="fixed left-0 top-14 z-40 h-[calc(100vh-56px)] w-14 border-r bg-white/70 backdrop-blur hidden xl:block">
         <Toolbar

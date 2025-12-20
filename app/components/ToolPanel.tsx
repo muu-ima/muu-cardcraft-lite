@@ -143,7 +143,7 @@ export default function ToolPanel({
       ].join(" ")}
     >
       {/* ✅ 見出し：BottomSheetでも上に残る */}
-      <div className="sticky top-0 z-10 -mx-4 mb-3 border-b bg-white/90 px-4 py-3 backdrop-blur xl:mx-0 xl:mb-0 xl:bg-transparent xl:px-3 xl:py-2">
+      <div className="sticky top-0 z-10 -mx-4 mb-3 bg-white/90 px-4 lg:py-3 backdrop-blur xl:mx-0 xl:mb-0 xl:bg-transparent xl:px-3 xl:py-2">
         {/* ✅ showHeader のときだけ描画する */}
         {showHeader && (
           <div
