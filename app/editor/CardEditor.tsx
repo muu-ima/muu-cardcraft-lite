@@ -29,6 +29,7 @@ export default function CardEditor() {
     activeTab,
     isPreview,
   });
+  const [activeBlockId, setActiveBlockId] = useState<string>("name");
   const [design, setDesign] = useState<DesignKey>("plain");
   const [showGuides, setShowGuides] = useState(true);
   const exportRef = useRef<HTMLDivElement | null>(null);
@@ -45,7 +46,7 @@ export default function CardEditor() {
     blocks: editableBlocks,
     updateText,
     updateFont,
-    handlePointerDown,
+    handlePointerDown: dragPointerDown,
     cardRef,
     blockRefs,
     downloadImage,
@@ -61,6 +62,15 @@ export default function CardEditor() {
   const onChangeText = (id: string, value: string) => {
     if (side !== "front") return;
     updateText(id, value);
+  };
+
+  const handleBlockPointerDown = (
+    e: React.PointerEvent<Element>,
+    blockId: string,
+    opts: { scale: number }
+  ) => {
+    setActiveBlockId(blockId); // 選択
+    dragPointerDown(e, blockId, opts); // ドラッグ（scale 重要）
   };
 
   return (
@@ -87,6 +97,7 @@ export default function CardEditor() {
           open={activeTab !== null}
           onClose={() => setActiveTab(null)}
           activeTab={activeTab}
+          activeBlockId={activeBlockId}
           side={side}
           onChangeSide={setSide}
           blocks={getBlocksFor(side)}
@@ -116,6 +127,7 @@ export default function CardEditor() {
             open={activeTab !== null}
             onClose={() => setActiveTab(null)}
             activeTab={activeTab}
+            activeBlockId={activeBlockId}
             side={side}
             onChangeSide={setSide}
             blocks={getBlocksFor(side)}
@@ -181,7 +193,8 @@ export default function CardEditor() {
           scale={scale}
           isPreview={isPreview}
           showGuides={showGuides}
-          onPointerDown={side === "front" ? handlePointerDown : undefined}
+          onPointerDown={side === "front" ? handleBlockPointerDown : undefined}
+          activeBlockId={activeBlockId}
           cardRef={cardRef}
           blockRefs={blockRefs}
         />
@@ -209,6 +222,7 @@ export default function CardEditor() {
                 w={CARD_BASE_W}
                 h={CARD_BASE_H}
                 interactive={false}
+                activeBlockId={activeBlockId}
                 className="shadow-lg"
               />
             </div>

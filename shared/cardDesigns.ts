@@ -47,6 +47,7 @@ export const CARD_FULL_DESIGNS: Record<DesignKey, cardDesign> = {
           y: 40,
           fontSize: 20,
           fontWeight: "bold",
+          fontKey: "sans",
         },
         {
           id: "url",
@@ -55,6 +56,7 @@ export const CARD_FULL_DESIGNS: Record<DesignKey, cardDesign> = {
           y: 80,
           fontSize: 14,
           fontWeight: "normal",
+          fontKey: "sans",
         },
       ],
     },
@@ -68,6 +70,7 @@ export const CARD_FULL_DESIGNS: Record<DesignKey, cardDesign> = {
           y: 120,
           fontSize: 24,
           fontWeight: "bold",
+          fontKey: "sans",
         },
         {
           id: "title",
@@ -76,6 +79,7 @@ export const CARD_FULL_DESIGNS: Record<DesignKey, cardDesign> = {
           y: 80,
           fontSize: 18,
           fontWeight: "normal",
+          fontKey: "sans",
         },
       ],
     },
