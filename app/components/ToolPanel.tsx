@@ -1,7 +1,7 @@
 // @/app/components/ToolPanel.tsx
 "use client";
 
-import type { Block } from "@/hooks/useCardBlocks";
+import type { Block } from "@/shared/blocks";
 import type { TabKey } from "@/shared/editor";
 import type { DesignKey } from "@/shared/design";
 import type { FontKey } from "@/shared/fonts";

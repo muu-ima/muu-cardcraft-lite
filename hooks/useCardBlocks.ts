@@ -3,50 +3,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useHistoryState } from "@/hooks/History";
-import { DesignKey } from "@/shared/design";
 import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
 import type { FontKey } from "@/shared/fonts";
 import { useExportImage } from "@/hooks/export/useExportImage";
+import type { Block } from "@/shared/blocks";
 
 type DragOptions = {
   disabled?: boolean;
   scale?: number;
-};
-
-export type Block = {
-  id: string;
-  text: string;
-  x: number;
-  y: number;
-  fontSize: number;
-  fontWeight: "normal" | "bold";
-  fontKey: FontKey;
-};
-
-// とりあえずこのファイルにデザイン定義を持たせる（あとで shared/ に出してもOK）
-const CARD_DESIGNS: Record<
-  DesignKey,
-  {
-    bgColor?: string;
-    image?: string;
-    mode?: "cover" | "contain";
-  }
-> = {
-  plain: {
-    bgColor: "#e2c7a3",
-  },
-  girl: {
-    image: "/girl.png",
-    mode: "cover",
-  },
-  kinmokusei: {
-    image: "/kinmokusei.png",
-    mode: "cover",
-  },
-  usaCarrot: {
-    image: "/usa-carrot.png",
-    mode: "contain",
-  },
 };
 
 // ✅ 初期ブロックは定数に（毎レンダリングで作らない）
@@ -264,56 +228,12 @@ export function useCardBlocks() {
     };
   }, [isDragging, dragTargetId, offset]);
 
-  // 画像ロード用の小さいヘルパー
-  const loadImage = (src: string): Promise<HTMLImageElement> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.src = src;
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("画像の読み込みに失敗しました"));
-    });
-  };
-
-  // cover / contain の描画ヘルパー
-  const drawCoverOrContainImage = (
-    ctx: CanvasRenderingContext2D,
-    img: HTMLImageElement,
-    mode: "cover" | "contain",
-    width: number,
-    height: number
-  ) => {
-    const iw = img.width;
-    const ih = img.height;
-
-    let drawW = width;
-    let drawH = height;
-    let dx = 0;
-    let dy = 0;
-
-    if (mode === "contain") {
-      const scale = Math.min(width / iw, height / ih);
-      drawW = iw * scale;
-      drawH = ih * scale;
-      dx = (width - drawW) / 2;
-      dy = (height - drawH) / 2;
-    } else {
-      // cover
-      const scale = Math.max(width / iw, height / ih);
-      drawW = iw * scale;
-      drawH = ih * scale;
-      dx = (width - drawW) / 2;
-      dy = (height - drawH) / 2;
-    }
-
-    ctx.drawImage(img, dx, dy, drawW, drawH);
-  };
-
   const { downloadImage } = useExportImage();
-  
+
   return {
     blocks,
     updateText,
-    updateFont, 
+    updateFont,
     handlePointerDown,
     cardRef,
     blockRefs,

@@ -1,6 +1,6 @@
 // shared/cardDesigns.ts
 import { CARD_DESIGNS, type DesignKey } from "./design";
-import type { Block } from "@/hooks/useCardBlocks";
+import type { Block } from "@/shared/blocks";
 
 /**
  * 1つのデザインは

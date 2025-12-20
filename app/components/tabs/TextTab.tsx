@@ -1,6 +1,6 @@
 "use client";
 
-import type { Block } from "@/hooks/useCardBlocks";
+import type { Block } from "@/shared/blocks";
 
 type Props = {
   blocks: Block[];

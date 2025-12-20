@@ -2,7 +2,7 @@
 "use client";
 
 import type { CSSProperties, RefObject } from "react";
-import type { Block } from "@/hooks/useCardBlocks";
+import type { Block } from "@/shared/blocks";
 import type { DesignKey } from "@/shared/design";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
 import { FONT_DEFINITIONS } from "@/shared/fonts";
