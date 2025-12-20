@@ -74,9 +74,7 @@ export default function CardSurface({
         ...style,
         touchAction: "none",
       }}
-      className={`rounded-xl border shadow-md overflow-hidden ${
-        className ?? ""
-      }`}
+      className={`rounded-xl border shadow-md ${className ?? ""}`}
     >
       {blocks.map((block) => (
         <div
@@ -97,7 +95,7 @@ export default function CardSurface({
             padding: "2px 4px",
           }}
           className={[
-            "select-none whitespace-nowrap text-zinc-900 dark:text-zinc-50",
+            "select-none text-zinc-900 dark:text-zinc-50",
             activeBlockId === block.id ? "ring-2 ring-pink-400/70 rounded" : "",
           ].join(" ")}
         >
@@ -108,8 +106,14 @@ export default function CardSurface({
               fontFamily:
                 FONT_DEFINITIONS[block.fontKey]?.css ??
                 FONT_DEFINITIONS.sans.css,
+
+              // 追加（重要）
+              whiteSpace: "pre", // \n だけ改行、勝手な折返しなし
+              width: "max-content", // 内容幅
+              maxWidth: "none",
+              overflowWrap: "normal",
+              wordBreak: "normal",
             }}
-            className="whitespace-pre-line"
           >
             {block.text}
           </div>

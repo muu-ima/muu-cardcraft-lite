@@ -50,6 +50,7 @@ export default function EditorCanvas({
             transform: `scale(${scale})`,
             transformOrigin: "top left",
           }}
+          className={isPreview ? "overflow-hidden" : "overflow-visible"}
         >
           <CardSurface
             blocks={blocks}
