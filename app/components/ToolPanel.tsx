@@ -49,7 +49,10 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border bg-white p-4 shadow-sm">
+    <section
+      className="rounded-2xl bg-white/70 backdrop-blur p-4
+                    shadow-[0_1px_0_rgba(0,0,0,0.06),0_8px_18px_rgba(0,0,0,0.06)]"
+    >
       <div className="mb-3">
         <p className="text-sm font-medium text-zinc-900">{title}</p>
         {desc && <p className="mt-1 text-xs text-zinc-500">{desc}</p>}
@@ -67,14 +70,17 @@ function SideToggle({
   onChangeSide: (s: Side) => void;
 }) {
   return (
-    <div className="inline-flex rounded-xl border bg-white p-1">
+    <div
+      className="inline-flex rounded-xl bg-white/60 backdrop-blur p-1
+                shadow-[0_1px_0_rgba(0,0,0,0.08)]"
+    >
       <button
         type="button"
         onClick={() => onChangeSide("front")}
         className={[
           "px-3 py-1.5 text-sm rounded-lg transition",
           side === "front"
-            ? "bg-blue-600/10 text-blue-700"
+            ? "bg-pink-500/15 text-pink-700"
             : "text-zinc-600 hover:bg-zinc-900/5",
         ].join(" ")}
       >
@@ -86,7 +92,7 @@ function SideToggle({
         className={[
           "px-3 py-1.5 text-sm rounded-lg transition",
           side === "back"
-            ? "bg-blue-600/10 text-blue-700"
+            ? "bg-pink-500/15 text-pink-700"
             : "text-zinc-600 hover:bg-zinc-900/5",
         ].join(" ")}
       >
@@ -131,17 +137,22 @@ export default function ToolPanel({
       className={[
         "w-full",
         "xl:fixed xl:left-14 xl:top-14 xl:z-30",
-        "xl:h-[calc(100vh-56px)] xl:w-[360px] xl:border-r",
+        "xl:h-[calc(100vh-56px)] xl:w-[360px]",
         "xl:bg-white/70 xl:backdrop-blur",
+        "xl:shadow-[1px_0_0_rgba(0,0,0,0.06)]",
       ].join(" ")}
     >
       {/* ✅ 見出し：BottomSheetでも上に残る */}
       <div className="sticky top-0 z-10 -mx-4 mb-3 border-b bg-white/90 px-4 py-3 backdrop-blur xl:mx-0 xl:mb-0 xl:bg-transparent xl:px-3 xl:py-2">
         {/* ✅ showHeader のときだけ描画する */}
         {showHeader && (
-          <div className="sticky top-0 z-10 border-b bg-white/90 px-4 py-3 backdrop-blur xl:bg-transparent xl:px-3 xl:py-2">
+          <div
+            className="sticky top-0 z-10 px-4 py-3 xl:px-3 xl:py-2
+                  bg-white/60 backdrop-blur
+                  shadow-[0_1px_0_rgba(0,0,0,0.06)]"
+          >
             <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold">{title}</div>
+              <div className="text-sm font-semibold text-zinc-800">{title}</div>
               <button
                 type="button"
                 onClick={onClose}

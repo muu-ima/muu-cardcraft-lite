@@ -33,15 +33,16 @@ export default function Toolbar({
   return (
     <aside
       className={[
-        // 画面左・縦固定（Canva系）
         "hidden md:flex",
         "flex-col justify-between",
         "sticky top-0 h-screen",
         "w-16 shrink-0",
-        "border-r bg-white/70 backdrop-blur",
+        // border-r をやめる
+        "bg-white/60 backdrop-blur",
+        // 右側に薄い陰影（線の代わり）
+        "shadow-[1px_0_0_rgba(0,0,0,0.06)]",
         "px-2 py-3",
       ].join(" ")}
-      aria-label="Editor Toolbar"
     >
       <div className="flex flex-col items-center gap-2">
         {tools.map(({ key, label, Icon }) => {
@@ -60,10 +61,10 @@ export default function Toolbar({
                 "transition",
                 // Canvaっぽい hover の濃淡
                 active
-                  ? "bg-blue-600/10 text-blue-700"
+                  ? "bg-pink-500/15 text-pink-700"
                   : "text-zinc-500 hover:bg-zinc-900/5 hover:text-zinc-800",
                 // キーボード操作も強く
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/35",
               ].join(" ")}
             >
               <Icon size={22} strokeWidth={1.75} />

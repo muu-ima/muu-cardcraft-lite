@@ -1,14 +1,21 @@
-// app/editor/layout.tsx
 import type { ReactNode } from "react";
 import Link from "next/link";
 
 export default function EditorLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[#eef4ff]">
-      {/* Editor Header */}
+    <div
+      className="
+        fixed inset-0 overflow-hidden
+        flex flex-col
+        bg-[#EEF3F8]
+      "
+    >
       <header
-        className="h-14 w-full border-b
-  bg-linear-to-r from-white via-pink-50 to-amber-50"
+        className="
+          h-14 shrink-0
+          border-b border-black/5
+          bg-white/70 backdrop-blur
+        "
       >
         <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4">
           <div className="flex items-center gap-3">
@@ -29,8 +36,8 @@ export default function EditorLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      {/* Editor Body */}
-      <div className="h-[calc(100vh-56px)]">{children}</div>
+      {/* ここが “残り全部” */}
+      <div className="flex-1 overflow-hidden">{children}</div>
     </div>
   );
 }
