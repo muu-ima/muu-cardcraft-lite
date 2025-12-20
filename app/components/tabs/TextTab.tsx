@@ -32,11 +32,12 @@ export default function TextTab({
           <label className="text-sm text-zinc-700 dark:text-zinc-200">
             テキスト{index + 1}
           </label>
-          <input
+          <textarea
             value={block.text}
             onChange={(e) => onChangeText?.(block.id, e.target.value)}
             disabled={isPreview}
-            className="mt-1 w-full rounded border px-3 py-2 text-sm dark:bg-neutral-800 dark:text-zinc-50"
+            rows={3}
+            className="mt-1 w-full resize-y rounded border px-3 py-2 text-sm dark:bg-neutral-800 dark:text-zinc-50"
           />
         </div>
       ))}

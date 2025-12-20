@@ -94,24 +94,25 @@ export default function CardSurface({
             top: block.y,
             left: block.x,
             cursor: interactive ? "move" : "default",
-            padding: "2px 4px", 
+            padding: "2px 4px",
           }}
           className={[
             "select-none whitespace-nowrap text-zinc-900 dark:text-zinc-50",
             activeBlockId === block.id ? "ring-2 ring-pink-400/70 rounded" : "",
           ].join(" ")}
         >
-          <span
+          <div
             style={{
               fontSize: `${block.fontSize}px`,
-              fontWeight: block.fontWeight, // "normal" | "bold"
+              fontWeight: block.fontWeight,
               fontFamily:
                 FONT_DEFINITIONS[block.fontKey]?.css ??
                 FONT_DEFINITIONS.sans.css,
             }}
+            className="whitespace-pre-line"
           >
             {block.text}
-          </span>{" "}
+          </div>
         </div>
       ))}
     </div>
