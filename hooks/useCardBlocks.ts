@@ -44,6 +44,21 @@ export function useCardBlocks() {
     redo,
   } = useHistoryState<Block[]>(INITIAL_BLOCKS);
 
+  const addBlock = () => {
+    set((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        text: "新しいテキスト",
+        x: 100,
+        y: 100,
+        fontSize: 16,
+        fontWeight: "normal",
+        fontKey: "sans",
+      },
+    ]);
+  };
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -232,6 +247,7 @@ export function useCardBlocks() {
 
   return {
     blocks,
+    addBlock,
     updateText,
     updateFont,
     handlePointerDown,

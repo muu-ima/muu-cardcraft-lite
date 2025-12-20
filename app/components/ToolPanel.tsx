@@ -17,7 +17,8 @@ type Props = {
   open: boolean;
   onClose: () => void;
   activeTab: TabKey | null;
-  activeBlockId: string
+  activeBlockId: string;
+  onAddBlock: () => void;
   variant?: "desktop" | "sheet";
 
   side: Side;
@@ -114,6 +115,7 @@ export default function ToolPanel({
   side,
   onChangeSide,
   blocks,
+  onAddBlock,
   isPreview,
   onChangeText,
   onChangeFont,
@@ -192,6 +194,7 @@ export default function ToolPanel({
             <TextTab
               blocks={blocks}
               isPreview={isPreview}
+              onAddBlock={onAddBlock}
               onChangeText={onChangeText}
               onTogglePreview={onTogglePreview}
             />

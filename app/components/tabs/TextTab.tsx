@@ -5,6 +5,7 @@ import type { Block } from "@/shared/blocks";
 type Props = {
   blocks: Block[];
   isPreview: boolean;
+  onAddBlock: () => void;
   onChangeText?: (id: string, value: string) => void; // ← optionalに
   onTogglePreview: () => void;
   canEdit?: boolean; // あってもいい（なくてもOK）
@@ -13,11 +14,19 @@ type Props = {
 export default function TextTab({
   blocks,
   isPreview,
+  onAddBlock,
   onChangeText,
   onTogglePreview,
 }: Props) {
   return (
     <div className="space-y-4 pt-2">
+      {/* 追加ボタン */}
+      <button
+        onClick={onAddBlock}
+        className="w-full rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
+      >
+        ＋ テキストを追加
+      </button>
       {blocks.map((block, index) => (
         <div key={block.id}>
           <label className="text-sm text-zinc-700 dark:text-zinc-200">
