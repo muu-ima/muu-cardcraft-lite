@@ -6,10 +6,10 @@ import type { TabKey } from "@/shared/editor";
 import type { DesignKey } from "@/shared/design";
 import type { FontKey } from "@/shared/fonts";
 
-import TextTab from "@/app/components/tabs/TextTab";
 import DesignTab from "@/app/components/tabs/DesignTab";
 import ExportTab from "@/app/components/tabs/ExportTab";
 import FontTab from "@/app/components/tabs/FontTab";
+import TextPanel from "@/app/components/panels/TextPanel";
 
 type Side = "front" | "back";
 
@@ -64,46 +64,6 @@ function Section({
       </div>
       {children}
     </section>
-  );
-}
-
-function SideToggle({
-  side,
-  onChangeSide,
-}: {
-  side: Side;
-  onChangeSide: (s: Side) => void;
-}) {
-  return (
-    <div
-      className="inline-flex rounded-xl bg-white/60 backdrop-blur p-1
-                shadow-[0_1px_0_rgba(0,0,0,0.08)]"
-    >
-      <button
-        type="button"
-        onClick={() => onChangeSide("front")}
-        className={[
-          "px-3 py-1.5 text-sm rounded-lg transition",
-          side === "front"
-            ? "bg-pink-500/15 text-pink-700"
-            : "text-zinc-600 hover:bg-zinc-900/5",
-        ].join(" ")}
-      >
-        表面
-      </button>
-      <button
-        type="button"
-        onClick={() => onChangeSide("back")}
-        className={[
-          "px-3 py-1.5 text-sm rounded-lg transition",
-          side === "back"
-            ? "bg-pink-500/15 text-pink-700"
-            : "text-zinc-600 hover:bg-zinc-900/5",
-        ].join(" ")}
-      >
-        裏面
-      </button>
-    </div>
   );
 }
 
@@ -183,24 +143,16 @@ export default function ToolPanel({
       >
         {" "}
         {activeTab === "text" && (
-          <Section title="編集する面" desc="表面 / 裏面 を切り替えます。">
-            <SideToggle side={side} onChangeSide={onChangeSide} />
-          </Section>
-        )}
-        {activeTab === "text" && (
-          <Section
-            title="テキスト編集"
-            desc="内容を入力してプレビューで確認できます。"
-          >
-            <TextTab
-              blocks={blocks}
-              isPreview={isPreview}
-              onAddBlock={onAddBlock}
-              onChangeText={onChangeText}
-              onBumpFontSize={onBumpFontSize}
-              onTogglePreview={onTogglePreview}
-            />
-          </Section>
+          <TextPanel
+            side={side}
+            onChangeSide={onChangeSide}
+            blocks={blocks}
+            onAddBlock={onAddBlock}
+            isPreview={isPreview}
+            onChangeText={onChangeText}
+            onBumpFontSize={onBumpFontSize}
+            onTogglePreview={onTogglePreview}
+          />
         )}
         {activeTab === "font" && (
           <Section title="フォント" desc="文字のフォントを選択します。">
