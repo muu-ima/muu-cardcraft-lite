@@ -3,7 +3,7 @@
 import React from "react";
 import CardSurface from "@/app/components/CardSurface";
 import PrintGuides from "@/app/components/editor/PrintGuides";
-import type { Block } from "@/hooks/useCardBlocks";
+import type { Block } from "@/shared/blocks";
 import type { DesignKey } from "@/shared/design";
 import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
 
@@ -50,6 +50,7 @@ export default function EditorCanvas({
             transform: `scale(${scale})`,
             transformOrigin: "top left",
           }}
+          className={isPreview ? "overflow-hidden" : "overflow-visible"}
         >
           <CardSurface
             blocks={blocks}

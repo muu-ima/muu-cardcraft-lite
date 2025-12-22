@@ -2,7 +2,7 @@
 "use client";
 
 import type { CSSProperties, RefObject } from "react";
-import type { Block } from "@/hooks/useCardBlocks";
+import type { Block } from "@/shared/blocks";
 import type { DesignKey } from "@/shared/design";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
 import { FONT_DEFINITIONS } from "@/shared/fonts";
@@ -74,9 +74,7 @@ export default function CardSurface({
         ...style,
         touchAction: "none",
       }}
-      className={`rounded-xl border shadow-md overflow-hidden ${
-        className ?? ""
-      }`}
+      className={`rounded-xl border shadow-md ${className ?? ""}`}
     >
       {blocks.map((block) => (
         <div
@@ -94,24 +92,31 @@ export default function CardSurface({
             top: block.y,
             left: block.x,
             cursor: interactive ? "move" : "default",
-            padding: "2px 4px", 
+            padding: "2px 4px",
           }}
           className={[
-            "select-none whitespace-nowrap text-zinc-900 dark:text-zinc-50",
+            "select-none text-zinc-900 dark:text-zinc-50",
             activeBlockId === block.id ? "ring-2 ring-pink-400/70 rounded" : "",
           ].join(" ")}
         >
-          <span
+          <div
             style={{
               fontSize: `${block.fontSize}px`,
-              fontWeight: block.fontWeight, // "normal" | "bold"
+              fontWeight: block.fontWeight,
               fontFamily:
                 FONT_DEFINITIONS[block.fontKey]?.css ??
                 FONT_DEFINITIONS.sans.css,
+
+              // 追加（重要）
+              whiteSpace: "pre", // \n だけ改行、勝手な折返しなし
+              width: "max-content", // 内容幅
+              maxWidth: "none",
+              overflowWrap: "normal",
+              wordBreak: "normal",
             }}
           >
             {block.text}
-          </span>{" "}
+          </div>
         </div>
       ))}
     </div>

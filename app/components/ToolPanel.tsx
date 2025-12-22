@@ -1,7 +1,7 @@
 // @/app/components/ToolPanel.tsx
 "use client";
 
-import type { Block } from "@/hooks/useCardBlocks";
+import type { Block } from "@/shared/blocks";
 import type { TabKey } from "@/shared/editor";
 import type { DesignKey } from "@/shared/design";
 import type { FontKey } from "@/shared/fonts";
@@ -17,7 +17,8 @@ type Props = {
   open: boolean;
   onClose: () => void;
   activeTab: TabKey | null;
-  activeBlockId: string
+  activeBlockId: string;
+  onAddBlock: () => void;
   variant?: "desktop" | "sheet";
 
   side: Side;
@@ -26,6 +27,7 @@ type Props = {
   blocks: Block[];
   isPreview: boolean;
   onChangeText: (id: string, value: string) => void;
+  onBumpFontSize?: (id: string, delta: number) => void;
 
   onTogglePreview: () => void;
 
@@ -35,7 +37,6 @@ type Props = {
   onChangeDesign: (design: DesignKey) => void;
 
   fontFamily: string;
-
   onDownload: (
     format: "png" | "jpeg",
     design: DesignKey,
@@ -114,9 +115,11 @@ export default function ToolPanel({
   side,
   onChangeSide,
   blocks,
+  onAddBlock,
   isPreview,
   onChangeText,
   onChangeFont,
+  onBumpFontSize,
   onTogglePreview,
   design,
   onChangeDesign,
@@ -192,7 +195,9 @@ export default function ToolPanel({
             <TextTab
               blocks={blocks}
               isPreview={isPreview}
+              onAddBlock={onAddBlock}
               onChangeText={onChangeText}
+              onBumpFontSize={onBumpFontSize}
               onTogglePreview={onTogglePreview}
             />
           </Section>
