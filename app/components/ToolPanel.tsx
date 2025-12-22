@@ -29,8 +29,6 @@ type Props = {
   onChangeText: (id: string, value: string) => void;
   onBumpFontSize?: (id: string, delta: number) => void;
 
-  onTogglePreview: () => void;
-
   onChangeFont: (id: string, fontKey: FontKey) => void;
 
   design: DesignKey;
@@ -80,7 +78,6 @@ export default function ToolPanel({
   onChangeText,
   onChangeFont,
   onBumpFontSize,
-  onTogglePreview,
   design,
   onChangeDesign,
   onDownload,
@@ -151,7 +148,6 @@ export default function ToolPanel({
             isPreview={isPreview}
             onChangeText={onChangeText}
             onBumpFontSize={onBumpFontSize}
-            onTogglePreview={onTogglePreview}
           />
         )}
         {activeTab === "font" && (

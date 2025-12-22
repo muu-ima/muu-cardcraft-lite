@@ -7,7 +7,6 @@ type Props = {
   isPreview: boolean;
   onAddBlock: () => void;
   onChangeText?: (id: string, value: string) => void; // ← optionalに
-  onTogglePreview: () => void;
   canEdit?: boolean; // あってもいい（なくてもOK）
   onBumpFontSize?: (id: string, delta: number) => void;
 };
@@ -17,7 +16,6 @@ export default function TextTab({
   isPreview,
   onAddBlock,
   onChangeText,
-  onTogglePreview,
   onBumpFontSize,
 }: Props) {
   return (
@@ -61,12 +59,7 @@ export default function TextTab({
         </div>
       ))}
 
-      <button
-        onClick={onTogglePreview}
-        className="w-full rounded-full border px-4 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-neutral-800 dark:text-zinc-50"
-      >
-        {isPreview ? "編集モードに戻る" : "プレビュー表示"}
-      </button>
+     
     </div>
   );
 }

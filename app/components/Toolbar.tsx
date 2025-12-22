@@ -7,6 +7,8 @@ import {
   Download,
   Undo2,
   Redo2,
+  Eye,
+  Pencil,
 } from "lucide-react";
 import type { TabKey } from "@/shared/editor";
 
@@ -15,6 +17,10 @@ type Props = {
   onChange: (tab: TabKey) => void;
   onUndo: () => void;
   onRedo: () => void;
+
+  // ✅ 追加
+  isPreview: boolean;
+  onTogglePreview: () => void;
 };
 
 const tools: { key: TabKey; label: string; Icon: React.ElementType }[] = [
@@ -29,149 +35,118 @@ export default function Toolbar({
   onChange,
   onUndo,
   onRedo,
+  isPreview,
+  onTogglePreview,
 }: Props) {
   return (
     <aside
       className={[
         "hidden md:flex",
-        "flex-col justify-between",
-        "sticky top-0 h-screen",
-        "w-16 shrink-0",
-        // border-r をやめる
+        "fixed inset-y-0 left-0 z-50",
+        "w-16",
+        "flex-col",
         "bg-white/60 backdrop-blur",
-        // 右側に薄い陰影（線の代わり）
         "shadow-[1px_0_0_rgba(0,0,0,0.06)]",
         "px-2 py-3",
       ].join(" ")}
     >
-      <div className="flex flex-col items-center gap-2">
-        {tools.map(({ key, label, Icon }) => {
-          const active = activeTab === key;
-
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => onChange(key)}
-              aria-label={label}
-              aria-current={active ? "page" : undefined}
-              className={[
-                "group relative",
-                "flex h-11 w-11 items-center justify-center rounded-xl",
-                "transition",
-                // Canvaっぽい hover の濃淡
-                active
-                  ? "bg-pink-500/15 text-pink-700"
-                  : "text-zinc-500 hover:bg-zinc-900/5 hover:text-zinc-800",
-                // キーボード操作も強く
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/35",
-              ].join(" ")}
-            >
-              <Icon size={22} strokeWidth={1.75} />
-
-              {/* Tooltip */}
-              <span
+      {/* 上：スクロールする領域 */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="flex flex-col items-center gap-2">
+          {tools.map(({ key, label, Icon }) => {
+            const active = activeTab === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => onChange(key)}
+                aria-label={label}
+                aria-current={active ? "page" : undefined}
                 className={[
-                  "pointer-events-none absolute left-14 top-1/2 -translate-y-1/2",
-                  "whitespace-nowrap rounded-md",
-                  "bg-zinc-900 px-2 py-1 text-xs text-white shadow",
-                  "opacity-0 translate-x-1",
-                  "transition group-hover:opacity-100 group-hover:translate-x-0",
+                  "group relative",
+                  "flex h-11 w-11 items-center justify-center rounded-xl",
+                  "transition",
+                  active
+                    ? "bg-pink-500/15 text-pink-700"
+                    : "text-zinc-500 hover:bg-zinc-900/5 hover:text-zinc-800",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/35",
                 ].join(" ")}
               >
-                {label}
-              </span>
-            </button>
-          );
-        })}
+                <Icon size={22} strokeWidth={1.75} />
+                <span
+                  className={[
+                    "pointer-events-none absolute left-14 top-1/2 -translate-y-1/2",
+                    "whitespace-nowrap rounded-md",
+                    "bg-zinc-900 px-2 py-1 text-xs text-white shadow",
+                    "opacity-0 translate-x-1",
+                    "transition group-hover:opacity-100 group-hover:translate-x-0",
+                  ].join(" ")}
+                >
+                  {label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Undo / Redo */}
-      <div className="flex flex-col items-center gap-2">
-        <button
-          type="button"
-          onClick={onUndo}
-          aria-label="元に戻す"
-          className={[
-            "group relative",
-            "flex h-11 w-11 items-center justify-center rounded-xl",
-            "transition",
-            "text-zinc-500 hover:bg-zinc-900/5 hover:text-zinc-800",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
-          ].join(" ")}
-          title="Undo (Ctrl+Z)"
-        >
-          <Undo2 size={22} strokeWidth={1.75} />
-          <span
+      {/* 下：固定される領域 */}
+      <div className="shrink-0 pt-3">
+        <div className="flex flex-col items-center gap-2">
+          {/* Preview */}
+          <button
+            type="button"
+            onClick={onTogglePreview}
+            aria-label={isPreview ? "編集モード" : "プレビュー"}
             className={[
-              "pointer-events-none absolute left-14 top-1/2 -translate-y-1/2",
-              "whitespace-nowrap rounded-md",
-              "bg-zinc-900 px-2 py-1 text-xs text-white shadow",
-              "opacity-0 translate-x-1",
-              "transition group-hover:opacity-100 group-hover:translate-x-0",
+              "group relative",
+              "flex h-11 w-11 items-center justify-center rounded-xl",
+              "transition",
+              isPreview
+                ? "bg-pink-500/15 text-pink-700"
+                : "text-zinc-500 hover:bg-zinc-900/5 hover:text-zinc-800",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/35",
             ].join(" ")}
           >
-            元に戻す
-          </span>
-        </button>
+            {isPreview ? (
+              <Pencil size={22} strokeWidth={1.75} />
+            ) : (
+              <Eye size={22} strokeWidth={1.75} />
+            )}
+          </button>
 
-        <button
-          type="button"
-          onClick={onRedo}
-          aria-label="やり直し"
-          className={[
-            "group relative",
-            "flex h-11 w-11 items-center justify-center rounded-xl",
-            "transition",
-            "text-zinc-500 hover:bg-zinc-900/5 hover:text-zinc-800",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
-          ].join(" ")}
-          title="Redo (Ctrl+Shift+Z)"
-        >
-          <Redo2 size={22} strokeWidth={1.75} />
-          <span
+          {/* Undo */}
+          <button
+            type="button"
+            onClick={onUndo}
+            aria-label="元に戻す"
             className={[
-              "pointer-events-none absolute left-14 top-1/2 -translate-y-1/2",
-              "whitespace-nowrap rounded-md",
-              "bg-zinc-900 px-2 py-1 text-xs text-white shadow",
-              "opacity-0 translate-x-1",
-              "transition group-hover:opacity-100 group-hover:translate-x-0",
+              "group relative",
+              "flex h-11 w-11 items-center justify-center rounded-xl",
+              "transition",
+              "text-zinc-500 hover:bg-zinc-900/5 hover:text-zinc-800",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
             ].join(" ")}
           >
-            やり直し
-          </span>
-        </button>
-      </div>
-      <div className="flex flex-col items-center gap-2">
-        <button
-          type="button"
-          onClick={onUndo}
-          aria-label="元に戻す"
-          title="Undo (Ctrl+Z)"
-          className={[
-            "group relative",
-            "flex h-11 w-11 items-center justify-center rounded-xl",
-            "text-zinc-500 hover:bg-zinc-900/5 hover:text-zinc-800",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
-          ].join(" ")}
-        >
-          <Undo2 size={22} strokeWidth={1.75} />
-        </button>
+            <Undo2 size={22} strokeWidth={1.75} />
+          </button>
 
-        <button
-          type="button"
-          onClick={onRedo}
-          aria-label="やり直し"
-          title="Redo (Ctrl+Shift+Z)"
-          className={[
-            "group relative",
-            "flex h-11 w-11 items-center justify-center rounded-xl",
-            "text-zinc-500 hover:bg-zinc-900/5 hover:text-zinc-800",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
-          ].join(" ")}
-        >
-          <Redo2 size={22} strokeWidth={1.75} />
-        </button>
+          {/* Redo */}
+          <button
+            type="button"
+            onClick={onRedo}
+            aria-label="やり直し"
+            className={[
+              "group relative",
+              "flex h-11 w-11 items-center justify-center rounded-xl",
+              "transition",
+              "text-zinc-500 hover:bg-zinc-900/5 hover:text-zinc-800",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
+            ].join(" ")}
+          >
+            <Redo2 size={22} strokeWidth={1.75} />
+          </button>
+        </div>
       </div>
     </aside>
   );

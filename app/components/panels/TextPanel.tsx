@@ -15,7 +15,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl bg-white/70 backdrop-blur p-4
+    <section
+      className="rounded-2xl bg-white/70 backdrop-blur p-4
       shadow-[0_1px_0_rgba(0,0,0,0.06),0_8px_18px_rgba(0,0,0,0.06)]"
     >
       <div className="mb-3">
@@ -35,7 +36,8 @@ function SideToggle({
   onChangeSide: (s: Side) => void;
 }) {
   return (
-    <div className="inline-flex rounded-xl bg-white/60 backdrop-blur p-1
+    <div
+      className="inline-flex rounded-xl bg-white/60 backdrop-blur p-1
       shadow-[0_1px_0_rgba(0,0,0,0.08)]"
     >
       <button
@@ -74,16 +76,14 @@ export default function TextPanel({
   isPreview,
   onChangeText,
   onBumpFontSize,
-  onTogglePreview,
 }: {
   side: Side;
-  onChangeSide: (side: Side) => void;
+  onChangeSide: (s: Side) => void;
   blocks: Block[];
   onAddBlock: () => void;
   isPreview: boolean;
   onChangeText: (id: string, value: string) => void;
   onBumpFontSize?: (id: string, delta: number) => void;
-  onTogglePreview: () => void;
 }) {
   return (
     <div className="space-y-4">
@@ -91,14 +91,16 @@ export default function TextPanel({
         <SideToggle side={side} onChangeSide={onChangeSide} />
       </Section>
 
-      <Section title="テキスト編集" desc="内容を入力してプレビューで確認できます。">
+      <Section
+        title="テキスト編集"
+        desc="内容を入力してプレビューで確認できます。"
+      >
         <TextTab
           blocks={blocks}
           isPreview={isPreview}
           onAddBlock={onAddBlock}
           onChangeText={onChangeText}
           onBumpFontSize={onBumpFontSize}
-          onTogglePreview={onTogglePreview}
         />
       </Section>
     </div>
