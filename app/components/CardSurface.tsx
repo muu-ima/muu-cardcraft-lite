@@ -76,49 +76,51 @@ export default function CardSurface({
       }}
       className={`rounded-xl border shadow-md ${className ?? ""}`}
     >
-      {blocks.map((block) => (
-        <div
-          key={block.id}
-          ref={(el) => {
-            if (blockRefs) blockRefs.current[block.id] = el;
-          }}
-          onPointerDown={
-            interactive && onBlockPointerDown
-              ? (e) => onBlockPointerDown(e, block.id)
-              : undefined
-          }
-          style={{
-            position: "absolute",
-            top: block.y,
-            left: block.x,
-            cursor: interactive ? "move" : "default",
-            padding: "2px 4px",
-          }}
-          className={[
-            "select-none text-zinc-900 dark:text-zinc-50",
-            activeBlockId === block.id ? "ring-2 ring-pink-400/70 rounded" : "",
-          ].join(" ")}
-        >
-          <div
-            style={{
-              fontSize: `${block.fontSize}px`,
-              fontWeight: block.fontWeight,
-              fontFamily:
-                FONT_DEFINITIONS[block.fontKey]?.css ??
-                FONT_DEFINITIONS.sans.css,
+      {blocks.map((block) => {
+        const showSelection = interactive && activeBlockId === block.id;
 
-              // 追加（重要）
-              whiteSpace: "pre", // \n だけ改行、勝手な折返しなし
-              width: "max-content", // 内容幅
-              maxWidth: "none",
-              overflowWrap: "normal",
-              wordBreak: "normal",
+        return (
+          <div
+            key={block.id}
+            ref={(el) => {
+              if (blockRefs) blockRefs.current[block.id] = el;
             }}
+            onPointerDown={
+              interactive && onBlockPointerDown
+                ? (e) => onBlockPointerDown(e, block.id)
+                : undefined
+            }
+            style={{
+              position: "absolute",
+              top: block.y,
+              left: block.x,
+              cursor: interactive ? "move" : "default",
+              padding: "2px 4px",
+            }}
+            className={[
+              "select-none text-zinc-900 dark:text-zinc-50",
+              showSelection ? "ring-2 ring-pink-400/70 rounded" : "",
+            ].join(" ")}
           >
-            {block.text}
+            <div
+              style={{
+                fontSize: `${block.fontSize}px`,
+                fontWeight: block.fontWeight,
+                fontFamily:
+                  FONT_DEFINITIONS[block.fontKey]?.css ??
+                  FONT_DEFINITIONS.sans.css,
+                whiteSpace: "pre",
+                width: "max-content",
+                maxWidth: "none",
+                overflowWrap: "normal",
+                wordBreak: "normal",
+              }}
+            >
+              {block.text}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

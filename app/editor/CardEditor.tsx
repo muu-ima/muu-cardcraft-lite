@@ -87,9 +87,17 @@ export default function CardEditor() {
       <div className="fixed left-0 top-14 z-40 h-[calc(100vh-56px)] w-14 border-r bg-white/70 backdrop-blur hidden xl:block">
         <Toolbar
           activeTab={activeTab}
-          onChange={onChangeTab}
+          onChange={setActiveTab}
           onUndo={undo}
           onRedo={redo}
+          isPreview={isPreview}
+          onTogglePreview={() => {
+            setIsPreview((v) => {
+              const next = !v;
+              if (next) setActiveTab(null); // ✅ プレビュー入ったらパネル閉じる（おすすめ）
+              return next;
+            });
+          }}
         />
       </div>
       <div className="hidden xl:block">
@@ -107,7 +115,6 @@ export default function CardEditor() {
           isPreview={isPreview}
           onChangeText={onChangeText}
           onBumpFontSize={bumpFontSize}
-          onTogglePreview={() => setIsPreview((v) => !v)}
           onChangeFont={updateFont}
           design={design}
           onChangeDesign={setDesign}
@@ -138,7 +145,6 @@ export default function CardEditor() {
             onAddBlock={addBlock}
             isPreview={isPreview}
             onChangeText={onChangeText}
-            onTogglePreview={() => setIsPreview((v) => !v)}
             onChangeFont={updateFont}
             onBumpFontSize={bumpFontSize}
             design={design}
