@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.89.0",
     "html-to-image": "^1.11.13",
     "konva": "^10.0.12",
     "lucide-react": "^0.561.0",
