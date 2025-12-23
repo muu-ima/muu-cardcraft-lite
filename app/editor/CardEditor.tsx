@@ -17,6 +17,7 @@ import { useEditorLayout } from "@/hooks/useEditorLayout";
 import { type DesignKey } from "@/shared/design";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
 import type { TabKey } from "@/shared/editor";
+import { createSnapshot, type SnapshotPayload } from "@/lib/snapshot";
 import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
 
 type Side = "front" | "back";
@@ -73,6 +74,32 @@ export default function CardEditor() {
   ) => {
     setActiveBlockId(blockId); // 選択
     dragPointerDown(e, blockId, opts); // ドラッグ（scale 重要）
+  };
+
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+
+  const onCreateShareLink = async () => {
+    try {
+      setIsSharing(true);
+
+      // ✅ SnapshotPayload として確定（version をリテラルにする）
+      const snapshot: SnapshotPayload = {
+        version: 1 as const,
+        design,
+        blocks: editableBlocks,
+      };
+
+      console.log("SUPABASE_URL", process.env.NEXT_PUBLIC_SUPABASE_URL);
+
+      const token = await createSnapshot(snapshot);
+      const url = `${window.location.origin}/s/${token}`;
+
+      setShareUrl(url);
+      await navigator.clipboard?.writeText(url).catch(() => {});
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   return (
@@ -159,7 +186,18 @@ export default function CardEditor() {
       </div>
 
       <CanvasArea innerRef={canvasRef} panelVisible={panelVisible}>
-        <div className="mb-3 flex w-full max-w-[480px] justify-end">
+        <div className="mb-3 flex w-full max-w-[480px] items-center justify-between gap-2">
+          {/* ✅ 共有ボタン */}
+          <button
+            type="button"
+            onClick={onCreateShareLink}
+            disabled={isSharing}
+            className="rounded-lg border bg-white/80 px-3 py-1.5 text-sm text-zinc-700 hover:bg-white disabled:opacity-50"
+          >
+            {isSharing ? "生成中…" : "共有リンク作成"}
+          </button>
+
+          {/* ✅ ガイド */}
           <button
             type="button"
             onClick={() => setShowGuides((v) => !v)}
@@ -168,6 +206,13 @@ export default function CardEditor() {
             {showGuides ? "ガイド：ON" : "ガイド：OFF"}
           </button>
         </div>
+
+        {/* ✅ 共有URL表示 */}
+        {shareUrl && (
+          <div className="mb-3 w-full max-w-[480px] text-xs text-zinc-600">
+            共有リンク：<span className="underline break-all">{shareUrl}</span>
+          </div>
+        )}
 
         {/* 表/裏トグル（キャンバス上） */}
         <div className="mb-5 hidden xl:flex items-center justify-center">
