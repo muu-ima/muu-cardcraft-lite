@@ -1,4 +1,5 @@
 // app/comopnents/panels/FontPanel.tsx
+"use client";
 
 import type { Block } from "@/shared/blocks";
 import FontTab from "@/app/components/tabs/FontTab";

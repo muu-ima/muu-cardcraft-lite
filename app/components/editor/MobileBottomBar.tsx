@@ -1,17 +1,25 @@
-//app/editor/components/MobileBottomBar.tsx
+// app/components/editor/MobileBottomBar.tsx
 "use client";
 
 import React from "react";
 import type { TabKey } from "@/shared/editor";
+import {
+  Type,
+  TextCursor,
+  Image as ImageIcon,
+  Download,
+} from "lucide-react";
 
 function MobileBottomBarItem({
   tab,
   label,
+  Icon,
   activeTab,
   onChangeTab,
 }: {
   tab: TabKey;
   label: string;
+  Icon: React.ElementType;
   activeTab: TabKey | null;
   onChangeTab: (tab: TabKey) => void;
 }) {
@@ -26,12 +34,16 @@ function MobileBottomBarItem({
         active ? "text-blue-700" : "text-zinc-600",
       ].join(" ")}
     >
+      {/* ここが “アイコン枠” */}
       <span
         className={[
-          "h-6 w-6 rounded-md",
+          "flex h-6 w-6 items-center justify-center rounded-md",
           active ? "bg-blue-600/15" : "bg-zinc-900/5",
         ].join(" ")}
-      />
+      >
+        <Icon size={16} strokeWidth={1.75} />
+      </span>
+
       <span className="text-[11px]">{label}</span>
     </button>
   );
@@ -49,20 +61,30 @@ export default function MobileBottomBar({
       <div className="border-t bg-white/90 backdrop-blur pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto flex h-14 max-w-[520px]">
           <MobileBottomBarItem
-            tab="design"
-            label="デザイン"
+            tab="text"
+            label="テキスト"
+            Icon={Type}
             activeTab={activeTab}
             onChangeTab={onChangeTab}
           />
           <MobileBottomBarItem
-            tab="text"
-            label="テキスト"
+            tab="font"
+            label="フォント"
+            Icon={TextCursor}
+            activeTab={activeTab}
+            onChangeTab={onChangeTab}
+          />
+          <MobileBottomBarItem
+            tab="design"
+            label="デザイン"
+            Icon={ImageIcon}
             activeTab={activeTab}
             onChangeTab={onChangeTab}
           />
           <MobileBottomBarItem
             tab="export"
             label="書き出し"
+            Icon={Download}
             activeTab={activeTab}
             onChangeTab={onChangeTab}
           />
