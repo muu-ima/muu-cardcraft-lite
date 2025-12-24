@@ -18,6 +18,7 @@ import { useEditorLayout } from "@/hooks/useEditorLayout";
 import { type DesignKey } from "@/shared/design";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
 import type { TabKey } from "@/shared/editor";
+import { createSnapshot, type SnapshotPayload } from "@/lib/snapshot";
 import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
 
 type Side = "front" | "back";
@@ -74,6 +75,32 @@ export default function CardEditor() {
   ) => {
     setActiveBlockId(blockId); // 選択
     dragPointerDown(e, blockId, opts); // ドラッグ（scale 重要）
+  };
+
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+
+  const onCreateShareLink = async () => {
+    try {
+      setIsSharing(true);
+
+      // ✅ SnapshotPayload として確定（version をリテラルにする）
+      const snapshot: SnapshotPayload = {
+        version: 1 as const,
+        design,
+        blocks: editableBlocks,
+      };
+
+      console.log("SUPABASE_URL", process.env.NEXT_PUBLIC_SUPABASE_URL);
+
+      const token = await createSnapshot(snapshot);
+      const url = `${window.location.origin}/s/${token}`;
+
+      setShareUrl(url);
+      await navigator.clipboard?.writeText(url).catch(() => {});
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   return (
