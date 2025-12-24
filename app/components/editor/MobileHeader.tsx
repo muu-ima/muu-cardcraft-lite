@@ -81,7 +81,6 @@ export default function MobileHeader({
           ) : (
             <>
               <Eye size={18} strokeWidth={1.75} />
-              プレビュー
             </>
           )}
         </button>

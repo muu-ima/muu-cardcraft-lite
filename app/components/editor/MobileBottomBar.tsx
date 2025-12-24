@@ -3,7 +3,12 @@
 
 import React from "react";
 import type { TabKey } from "@/shared/editor";
-import { Type, Image as ImageIcon, Download } from "lucide-react";
+import {
+  Type,
+  TextCursor,
+  Image as ImageIcon,
+  Download,
+} from "lucide-react";
 
 function MobileBottomBarItem({
   tab,
@@ -56,16 +61,23 @@ export default function MobileBottomBar({
       <div className="border-t bg-white/90 backdrop-blur pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto flex h-14 max-w-[520px]">
           <MobileBottomBarItem
-            tab="design"
-            label="デザイン"
-            Icon={ImageIcon}
+            tab="text"
+            label="テキスト"
+            Icon={Type}
             activeTab={activeTab}
             onChangeTab={onChangeTab}
           />
           <MobileBottomBarItem
-            tab="text"
-            label="テキスト"
-            Icon={Type}
+            tab="font"
+            label="フォント"
+            Icon={TextCursor}
+            activeTab={activeTab}
+            onChangeTab={onChangeTab}
+          />
+          <MobileBottomBarItem
+            tab="design"
+            label="デザイン"
+            Icon={ImageIcon}
             activeTab={activeTab}
             onChangeTab={onChangeTab}
           />
