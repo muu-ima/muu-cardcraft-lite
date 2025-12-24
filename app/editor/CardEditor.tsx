@@ -9,6 +9,7 @@ import CanvasArea from "@/app/components/editor/CanvasArea";
 import BottomSheet from "@/app/components/editor/BottomSheet";
 import MobileBottomBar from "@/app/components/editor/MobileBottomBar";
 import EditorCanvas from "@/app/components/editor/EditorCanvas";
+import MobileHeader from "@/app/components/editor/MobileHeader";
 import ExportSurface from "@/app/components/ExportSurface";
 
 import { useScaleToFit } from "@/hooks/useScaleToFit";
@@ -83,6 +84,25 @@ export default function CardEditor() {
           "linear-gradient(135deg, #eef3f8 0%, #f7eef2 55%, #eef4ff 100%)",
       }}
     >
+      {/* ✅ Mobile Header（xl未満だけ表示） */}
+      <MobileHeader
+        isPreview={isPreview}
+        onTogglePreview={() => {
+          setIsPreview((v) => {
+            const next = !v;
+            if (next) setActiveTab(null);
+            return next;
+          });
+        }}
+        onUndo={undo}
+        onRedo={redo}
+        onHome={() => {
+          // 例：とりあえず「タブを閉じる」でもOK
+          setActiveTab(null);
+          setIsPreview(false);
+          setSide("front");
+        }}
+      />
       {/* ★ヘッダー分(56px)は上に空ける */}
       <div className="fixed left-0 top-14 z-40 h-[calc(100vh-56px)] w-14 border-r bg-white/70 backdrop-blur hidden xl:block">
         <Toolbar
@@ -158,59 +178,63 @@ export default function CardEditor() {
         </BottomSheet>
       </div>
 
-      <CanvasArea innerRef={canvasRef} panelVisible={panelVisible}>
-        <div className="mb-3 flex w-full max-w-[480px] justify-end">
-          <button
-            type="button"
-            onClick={() => setShowGuides((v) => !v)}
-            className="rounded-lg border bg-white/80 px-3 py-1.5 text-sm text-zinc-700 hover:bg-white"
-          >
-            {showGuides ? "ガイド：ON" : "ガイド：OFF"}
-          </button>
-        </div>
-
-        {/* 表/裏トグル（キャンバス上） */}
-        <div className="mb-5 hidden xl:flex items-center justify-center">
-          <div className="inline-flex rounded-xl border bg-white/80 p-1 backdrop-blur">
+      <div className="pt-14 xl:pt-0">
+        <CanvasArea innerRef={canvasRef} panelVisible={panelVisible}>
+          <div className="mb-3 flex w-full max-w-[480px] justify-end">
             <button
               type="button"
-              onClick={() => setSide("front")}
-              className={[
-                "px-3 py-1.5 text-sm rounded-lg transition",
-                side === "front"
-                  ? "bg-blue-600/10 text-blue-700"
-                  : "text-zinc-600 hover:bg-zinc-900/5",
-              ].join(" ")}
+              onClick={() => setShowGuides((v) => !v)}
+              className="rounded-lg border bg-white/80 px-3 py-1.5 text-sm text-zinc-700 hover:bg-white"
             >
-              表面
-            </button>
-            <button
-              type="button"
-              onClick={() => setSide("back")}
-              className={[
-                "px-3 py-1.5 text-sm rounded-lg transition",
-                side === "back"
-                  ? "bg-blue-600/10 text-blue-700"
-                  : "text-zinc-600 hover:bg-zinc-900/5",
-              ].join(" ")}
-            >
-              裏面
+              {showGuides ? "ガイド：ON" : "ガイド：OFF"}
             </button>
           </div>
-        </div>
 
-        <EditorCanvas
-          blocks={getBlocksFor(side)}
-          design={design}
-          scale={scale}
-          isPreview={isPreview}
-          showGuides={showGuides}
-          onPointerDown={side === "front" ? handleBlockPointerDown : undefined}
-          activeBlockId={activeBlockId}
-          cardRef={cardRef}
-          blockRefs={blockRefs}
-        />
-      </CanvasArea>
+          {/* 表/裏トグル（キャンバス上） */}
+          <div className="mb-5 hidden xl:flex items-center justify-center">
+            <div className="inline-flex rounded-xl border bg-white/80 p-1 backdrop-blur">
+              <button
+                type="button"
+                onClick={() => setSide("front")}
+                className={[
+                  "px-3 py-1.5 text-sm rounded-lg transition",
+                  side === "front"
+                    ? "bg-blue-600/10 text-blue-700"
+                    : "text-zinc-600 hover:bg-zinc-900/5",
+                ].join(" ")}
+              >
+                表面
+              </button>
+              <button
+                type="button"
+                onClick={() => setSide("back")}
+                className={[
+                  "px-3 py-1.5 text-sm rounded-lg transition",
+                  side === "back"
+                    ? "bg-blue-600/10 text-blue-700"
+                    : "text-zinc-600 hover:bg-zinc-900/5",
+                ].join(" ")}
+              >
+                裏面
+              </button>
+            </div>
+          </div>
+
+          <EditorCanvas
+            blocks={getBlocksFor(side)}
+            design={design}
+            scale={scale}
+            isPreview={isPreview}
+            showGuides={showGuides}
+            onPointerDown={
+              side === "front" ? handleBlockPointerDown : undefined
+            }
+            activeBlockId={activeBlockId}
+            cardRef={cardRef}
+            blockRefs={blockRefs}
+          />
+        </CanvasArea>
+      </div>
       <ModalPreview
         open={isPreview}
         onClose={() => setIsPreview(false)}
