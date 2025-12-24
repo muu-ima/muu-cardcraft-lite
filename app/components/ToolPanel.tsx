@@ -6,10 +6,10 @@ import type { TabKey } from "@/shared/editor";
 import type { DesignKey } from "@/shared/design";
 import type { FontKey } from "@/shared/fonts";
 
-import DesignTab from "@/app/components/tabs/DesignTab";
-import ExportTab from "@/app/components/tabs/ExportTab";
-import FontTab from "@/app/components/tabs/FontTab";
 import TextPanel from "@/app/components/panels/TextPanel";
+import FontPanel from "@/app/components/panels/FontPanel";
+import DesignPanel from "@/app/components/panels/DedignPanel";
+import ExportPanel from "@/app/components/panels/ExportPanel";
 
 type Side = "front" | "back";
 
@@ -41,29 +41,6 @@ type Props = {
     options?: { quality?: number; pixelRatio?: number; fontFamily?: string }
   ) => void;
 };
-
-function Section({
-  title,
-  desc,
-  children,
-}: {
-  title: string;
-  desc?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section
-      className="rounded-2xl bg-white/70 backdrop-blur p-4
-                    shadow-[0_1px_0_rgba(0,0,0,0.06),0_8px_18px_rgba(0,0,0,0.06)]"
-    >
-      <div className="mb-3">
-        <p className="text-sm font-medium text-zinc-900">{title}</p>
-        {desc && <p className="mt-1 text-xs text-zinc-500">{desc}</p>}
-      </div>
-      {children}
-    </section>
-  );
-}
 
 export default function ToolPanel({
   open,
@@ -151,25 +128,17 @@ export default function ToolPanel({
           />
         )}
         {activeTab === "font" && (
-          <Section title="フォント" desc="文字のフォントを選択します。">
-            <FontTab
-              value={blocks.find((b) => b.id === "name")?.fontKey ?? "sans"}
-              onChange={(font) => onChangeFont(activeBlockId, font)}
-            />
-          </Section>
+          <FontPanel
+            blocks={blocks}
+            activeBlockId={activeBlockId}
+            onChangeFont={onChangeFont}
+          />
         )}
         {activeTab === "design" && (
-          <Section
-            title="背景デザイン"
-            desc="カードの背景デザインを選択します。"
-          >
-            <DesignTab value={design} onChange={onChangeDesign} />
-          </Section>
+          <DesignPanel design={design} onChangeDesign={onChangeDesign} />
         )}
         {activeTab === "export" && (
-          <Section title="書き出し" desc="画像として保存します。">
-            <ExportTab design={design} onDownload={onDownload} />
-          </Section>
+          <ExportPanel design={design} onDownload={onDownload} />
         )}
       </div>
     </aside>
