@@ -42,6 +42,7 @@ export const CARD_FULL_DESIGNS: Record<DesignKey, cardDesign> = {
       blocks: [
         {
           id: "brand",
+          type: "text",
           text: "Cocco",
           x: 40,
           y: 40,
@@ -51,6 +52,7 @@ export const CARD_FULL_DESIGNS: Record<DesignKey, cardDesign> = {
         },
         {
           id: "url",
+          type: "text",
           text: "cocco.example",
           x: 40,
           y: 80,
@@ -65,6 +67,7 @@ export const CARD_FULL_DESIGNS: Record<DesignKey, cardDesign> = {
       blocks: [
         {
           id: "name",
+          type: "text",
           text: "山田 太郎",
           x: 100,
           y: 120,
@@ -74,6 +77,7 @@ export const CARD_FULL_DESIGNS: Record<DesignKey, cardDesign> = {
         },
         {
           id: "title",
+          type: "text",
           text: "デザイナー / Designer",
           x: 100,
           y: 80,

@@ -11,6 +11,7 @@ import MobileBottomBar from "@/app/components/editor/MobileBottomBar";
 import EditorCanvas from "@/app/components/editor/EditorCanvas";
 import MobileHeader from "@/app/components/editor/MobileHeader";
 import ExportSurface from "@/app/components/ExportSurface";
+import CenterToolbar from "@/app/components/editor/CenterToolbar";
 
 import { useScaleToFit } from "@/hooks/useScaleToFit";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
@@ -18,7 +19,6 @@ import { useEditorLayout } from "@/hooks/useEditorLayout";
 import { type DesignKey } from "@/shared/design";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
 import type { TabKey } from "@/shared/editor";
-import { createSnapshot, type SnapshotPayload } from "@/lib/snapshot";
 import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
 
 type Side = "front" | "back";
@@ -31,6 +31,7 @@ export default function CardEditor() {
     activeTab,
     isPreview,
   });
+  
   const [activeBlockId, setActiveBlockId] = useState<string>("name");
   const [design, setDesign] = useState<DesignKey>("plain");
   const [showGuides, setShowGuides] = useState(true);
@@ -44,19 +45,20 @@ export default function CardEditor() {
   // ★ CanvasArea内の幅でスケール作る（表面/裏面 共通）
   const { ref: canvasRef, scale } = useScaleToFit(CARD_BASE_W, true);
 
-  const {
-    blocks: editableBlocks,
-    addBlock,
-    updateText,
-    updateFont,
-    bumpFontSize,
-    handlePointerDown: dragPointerDown,
-    cardRef,
-    blockRefs,
-    downloadImage,
-    undo,
-    redo,
-  } = useCardBlocks();
+const {
+  blocks: editableBlocks,
+  addBlock,
+  updateText,
+  updateFont,
+  updateTextStyle,
+  bumpFontSize,
+  handlePointerDown: dragPointerDown,
+  cardRef,
+  blockRefs,
+  downloadImage,
+  undo,
+  redo,
+} = useCardBlocks();
 
   const getBlocksFor = (s: Side) =>
     s === "front"
@@ -77,31 +79,18 @@ export default function CardEditor() {
     dragPointerDown(e, blockId, opts); // ドラッグ（scale 重要）
   };
 
-  const [shareUrl, setShareUrl] = useState<string | null>(null);
-  const [isSharing, setIsSharing] = useState(false);
+const active = editableBlocks.find((b) => b.id === activeBlockId);
 
-  const onCreateShareLink = async () => {
-    try {
-      setIsSharing(true);
+const centerToolbarValue =
+  active
+    ? {
+        fontKey: active.fontKey,
+        fontSize: active.fontSize ?? 16,
+        bold: active.fontWeight === "bold",
+        align: "left" as const, // ← いったん固定（Blockに無いので）
+      }
+    : null;
 
-      // ✅ SnapshotPayload として確定（version をリテラルにする）
-      const snapshot: SnapshotPayload = {
-        version: 1 as const,
-        design,
-        blocks: editableBlocks,
-      };
-
-      console.log("SUPABASE_URL", process.env.NEXT_PUBLIC_SUPABASE_URL);
-
-      const token = await createSnapshot(snapshot);
-      const url = `${window.location.origin}/s/${token}`;
-
-      setShareUrl(url);
-      await navigator.clipboard?.writeText(url).catch(() => {});
-    } finally {
-      setIsSharing(false);
-    }
-  };
 
   return (
     <div
@@ -207,7 +196,7 @@ export default function CardEditor() {
 
       <div className="pt-14 xl:pt-0">
         <CanvasArea innerRef={canvasRef} panelVisible={panelVisible}>
-          <div className="mb-3 flex w-full max-w-[480px] justify-end">
+          {/* <div className="mb-3 flex w-full max-w-[480px] justify-end">
             <button
               type="button"
               onClick={() => setShowGuides((v) => !v)}
@@ -215,10 +204,10 @@ export default function CardEditor() {
             >
               {showGuides ? "ガイド：ON" : "ガイド：OFF"}
             </button>
-          </div>
+          </div> */}
 
           {/* 表/裏トグル（キャンバス上） */}
-          <div className="mb-5 hidden xl:flex items-center justify-center">
+          {/* <div className="mb-5 hidden xl:flex items-center justify-center">
             <div className="inline-flex rounded-xl border bg-white/80 p-1 backdrop-blur">
               <button
                 type="button"
@@ -245,21 +234,55 @@ export default function CardEditor() {
                 裏面
               </button>
             </div>
-          </div>
+          </div> */}
 
-          <EditorCanvas
-            blocks={getBlocksFor(side)}
-            design={design}
-            scale={scale}
-            isPreview={isPreview}
+          <CenterToolbar
+            value={centerToolbarValue}
+            activeTab={activeTab}
+            onOpenTab={(tab) => onChangeTab(tab)}
+            // ✅ ここが「存在する関数名」版
+            onChangeFontSize={(next) => {
+              if (side !== "front") return;
+              if (!centerToolbarValue) return;
+
+              // bumpFontSize が「差分」想定の可能性が高いので delta を渡す
+              const delta = next - centerToolbarValue.fontSize;
+              bumpFontSize(activeBlockId, delta);
+            }}
+            onToggleBold={() => {
+              if (side !== "front") return;
+              if (!active) return;
+              updateTextStyle(activeBlockId, {
+                fontWeight: active.fontWeight === "bold" ? "normal" : "bold",
+              });
+            }}
+            onChangeAlign={(align) => {
+              if (side !== "front") return;
+              updateTextStyle(activeBlockId, { align });
+            }}
+            side={side}
+            onChangeSide={setSide}
             showGuides={showGuides}
-            onPointerDown={
-              side === "front" ? handleBlockPointerDown : undefined
-            }
-            activeBlockId={activeBlockId}
-            cardRef={cardRef}
-            blockRefs={blockRefs}
+            onToggleGuides={() => setShowGuides((v) => !v)}
+            disabled={isPreview}
           />
+          <div className="mx-auto flex w-full max-w-[980px] justify-center pt-28">
+            <div className="w-full flex justify-center">
+              <EditorCanvas
+                blocks={getBlocksFor(side)}
+                design={design}
+                scale={scale}
+                isPreview={isPreview}
+                showGuides={showGuides}
+                onPointerDown={
+                  side === "front" ? handleBlockPointerDown : undefined
+                }
+                activeBlockId={activeBlockId}
+                cardRef={cardRef}
+                blockRefs={blockRefs}
+              />
+            </div>
+          </div>
         </CanvasArea>
       </div>
       <ModalPreview
