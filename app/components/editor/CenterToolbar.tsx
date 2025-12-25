@@ -2,11 +2,12 @@
 
 import React from "react";
 import type { TabKey } from "@/shared/editor";
+import { FontKey } from "@/shared/fonts";
 
 export type Align = "left" | "center" | "right";
 
 export type CenterToolbarValue = {
-  fontKey: "sans" | "maru" | "serif";
+  fontKey: FontKey;
   fontSize: number;
   bold: boolean;
   align: Align;
@@ -74,9 +75,10 @@ export default function CenterToolbar({
         className={[
           "pointer-events-auto flex items-center gap-2 rounded-2xl border bg-white/85 px-3 py-2 backdrop-blur",
           "shadow-[0_1px_0_rgba(0,0,0,0.06),0_10px_22px_rgba(0,0,0,0.10)]",
+          "min-w-[720px]", // ← 追加（好みで 680〜820 くらい）
+          "justify-between", // ← 追加（左右に余白感出る）
           value === null ? "opacity-70" : "",
         ].join(" ")}
-        aria-label="中央ツールバー"
       >
         {/* ✅ ① テキスト系：valueがある時だけ描画（ここ以外で value を触らない） */}
         {value && (
