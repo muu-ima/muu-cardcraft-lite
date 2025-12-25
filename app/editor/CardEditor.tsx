@@ -31,7 +31,7 @@ export default function CardEditor() {
     activeTab,
     isPreview,
   });
-  
+
   const [activeBlockId, setActiveBlockId] = useState<string>("name");
   const [design, setDesign] = useState<DesignKey>("plain");
   const [showGuides, setShowGuides] = useState(true);
@@ -45,20 +45,21 @@ export default function CardEditor() {
   // ★ CanvasArea内の幅でスケール作る（表面/裏面 共通）
   const { ref: canvasRef, scale } = useScaleToFit(CARD_BASE_W, true);
 
-const {
-  blocks: editableBlocks,
-  addBlock,
-  updateText,
-  updateFont,
-  updateTextStyle,
-  bumpFontSize,
-  handlePointerDown: dragPointerDown,
-  cardRef,
-  blockRefs,
-  downloadImage,
-  undo,
-  redo,
-} = useCardBlocks();
+  const {
+    blocks: editableBlocks,
+    addBlock,
+    previewText,
+    commitText,
+    updateFont,
+    updateTextStyle,
+    bumpFontSize,
+    handlePointerDown: dragPointerDown,
+    cardRef,
+    blockRefs,
+    downloadImage,
+    undo,
+    redo,
+  } = useCardBlocks();
 
   const getBlocksFor = (s: Side) =>
     s === "front"
@@ -67,7 +68,12 @@ const {
 
   const onChangeText = (id: string, value: string) => {
     if (side !== "front") return;
-    updateText(id, value);
+    previewText(id, value); // 入力中は set
+  };
+
+  const onCommitText = (id: string, value: string) => {
+    if (side !== "front") return;
+    commitText(id, value); // 確定は commit
   };
 
   const handleBlockPointerDown = (
@@ -79,10 +85,9 @@ const {
     dragPointerDown(e, blockId, opts); // ドラッグ（scale 重要）
   };
 
-const active = editableBlocks.find((b) => b.id === activeBlockId);
+  const active = editableBlocks.find((b) => b.id === activeBlockId);
 
-const centerToolbarValue =
-  active
+  const centerToolbarValue = active
     ? {
         fontKey: active.fontKey,
         fontSize: active.fontSize ?? 16,
@@ -90,7 +95,6 @@ const centerToolbarValue =
         align: "left" as const, // ← いったん固定（Blockに無いので）
       }
     : null;
-
 
   return (
     <div
@@ -150,6 +154,7 @@ const centerToolbarValue =
           onAddBlock={addBlock}
           isPreview={isPreview}
           onChangeText={onChangeText}
+          onCommitText={onCommitText}
           onBumpFontSize={bumpFontSize}
           onChangeFont={updateFont}
           design={design}
@@ -181,6 +186,7 @@ const centerToolbarValue =
             onAddBlock={addBlock}
             isPreview={isPreview}
             onChangeText={onChangeText}
+            onCommitText={onCommitText}
             onChangeFont={updateFont}
             onBumpFontSize={bumpFontSize}
             design={design}

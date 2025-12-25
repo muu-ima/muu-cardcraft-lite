@@ -17,7 +17,7 @@ type DragOptions = {
 const INITIAL_BLOCKS: Block[] = [
   {
     id: "name",
-       type: "text",
+    type: "text",
     text: "山田 太郎",
     x: 100,
     y: 120,
@@ -27,7 +27,7 @@ const INITIAL_BLOCKS: Block[] = [
   },
   {
     id: "title",
-       type: "text",
+    type: "text",
     text: "デザイナー / Designer",
     x: 100,
     y: 80,
@@ -46,13 +46,41 @@ export function useCardBlocks() {
     redo,
   } = useHistoryState<Block[]>(INITIAL_BLOCKS);
 
+  // -------------------------
+  // テキスト入力（軽い）
+  // -------------------------
+  const previewText = (id: string, text: string) => {
+    set((prev) => prev.map((b) => (b.id === id ? { ...b, text } : b)));
+  };
+
+  // -------------------------
+  // テキスト入力（確定）
+  // -------------------------
+  const commitText = (id: string, text: string) => {
+    commit((prev) => {
+      const cur = prev.find((b) => b.id === id);
+      if (!cur || cur.text === text) return prev; // 変化なし→履歴増やさない
+      return prev.map((b) => (b.id === id ? { ...b, text } : b));
+    });
+  };
+
+  // -------------------------
+  // フォント変更（確定操作）
+  // -------------------------
+  const updateFont = (id: string, fontKey: FontKey) => {
+    commit((prev) => prev.map((b) => (b.id === id ? { ...b, fontKey } : b)));
+  };
+
+  // -------------------------
+  // 新規テキスト追加（確定操作）
+  // -------------------------
   const addBlock = () => {
-    set((prev) => [
+    commit((prev) => [
       ...prev,
       {
         id: crypto.randomUUID(),
+        type: "text",
         text: "新しいテキスト",
-           type: "text",
         x: 100,
         y: 100,
         fontSize: 16,
@@ -135,15 +163,6 @@ export function useCardBlocks() {
   // カードと各ブロックの DOM
   const cardRef = useRef<HTMLDivElement | null>(null);
   const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-  // テキスト変更
-  const updateText = (id: string, text: string) => {
-    set((prev) => prev.map((b) => (b.id === id ? { ...b, text } : b)));
-  };
-
-  const updateFont = (id: string, fontKey: FontKey) => {
-    set((prev) => prev.map((b) => (b.id === id ? { ...b, fontKey } : b)));
-  };
 
   const clamp = (v: number, min: number, max: number) =>
     Math.max(min, Math.min(max, v));
@@ -280,7 +299,8 @@ export function useCardBlocks() {
   return {
     blocks,
     addBlock,
-    updateText,
+    previewText,
+    commitText,
     updateFont,
     updateFontSize,
     updateTextStyle,

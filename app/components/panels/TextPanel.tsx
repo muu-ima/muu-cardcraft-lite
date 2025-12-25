@@ -53,6 +53,7 @@ export default function TextPanel({
   onAddBlock,
   isPreview,
   onChangeText,
+  onCommitText,
   onBumpFontSize,
 }: {
   side: Side;
@@ -61,6 +62,7 @@ export default function TextPanel({
   onAddBlock: () => void;
   isPreview: boolean;
   onChangeText: (id: string, value: string) => void;
+  onCommitText: (id: string, value: string) => void;
   onBumpFontSize?: (id: string, delta: number) => void;
 }) {
   return (
@@ -78,6 +80,7 @@ export default function TextPanel({
           isPreview={isPreview}
           onAddBlock={onAddBlock}
           onChangeText={onChangeText}
+          onCommitText={onCommitText}
           onBumpFontSize={onBumpFontSize}
         />
       </PanelSection>

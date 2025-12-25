@@ -27,6 +27,7 @@ type Props = {
   blocks: Block[];
   isPreview: boolean;
   onChangeText: (id: string, value: string) => void;
+  onCommitText: (id: string, value: string) => void;
   onBumpFontSize?: (id: string, delta: number) => void;
 
   onChangeFont: (id: string, fontKey: FontKey) => void;
@@ -54,6 +55,7 @@ export default function ToolPanel({
   isPreview,
   onChangeText,
   onChangeFont,
+  onCommitText,
   onBumpFontSize,
   design,
   onChangeDesign,
@@ -123,7 +125,8 @@ export default function ToolPanel({
             blocks={blocks}
             onAddBlock={onAddBlock}
             isPreview={isPreview}
-            onChangeText={onChangeText}
+            onChangeText={onChangeText}   
+            onCommitText={onCommitText}
             onBumpFontSize={onBumpFontSize}
           />
         )}

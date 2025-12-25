@@ -7,6 +7,7 @@ type Props = {
   isPreview: boolean;
   onAddBlock: () => void;
   onChangeText?: (id: string, value: string) => void; // ← optionalに
+  onCommitText?: (id: string, value: string) => void;
   canEdit?: boolean; // あってもいい（なくてもOK）
   onBumpFontSize?: (id: string, delta: number) => void;
 };
@@ -16,6 +17,7 @@ export default function TextTab({
   isPreview,
   onAddBlock,
   onChangeText,
+  onCommitText,
   onBumpFontSize,
 }: Props) {
   return (
@@ -35,6 +37,15 @@ export default function TextTab({
           <textarea
             value={block.text}
             onChange={(e) => onChangeText?.(block.id, e.target.value)}
+            onBlur={(e) => onCommitText?.(block.id, e.target.value)}
+            onKeyDown={(e) => {
+              if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                onCommitText?.(
+                  block.id,
+                  (e.target as HTMLTextAreaElement).value
+                );
+              }
+            }}
             disabled={isPreview}
             rows={3}
             className="mt-1 w-full resize-y rounded border px-3 py-2 text-sm dark:bg-neutral-800 dark:text-zinc-50"
@@ -58,8 +69,6 @@ export default function TextTab({
           </button>
         </div>
       ))}
-
-     
     </div>
   );
 }
