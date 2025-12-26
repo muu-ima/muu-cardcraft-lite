@@ -27,6 +27,9 @@ type CardSurfaceProps = {
   /** 選択中ブロック */
   activeBlockId?: string;
 
+  /** ダブルクリックで編集開始（text blockのみ） */
+  onBlockDoubleClick?: (blockId: string) => void;
+
   /** editor / export 用 ref */
   cardRef?: RefObject<HTMLDivElement | null>;
   blockRefs?: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
@@ -57,6 +60,7 @@ export default function CardSurface({
   h,
   interactive = false,
   onBlockPointerDown,
+  onBlockDoubleClick,
   activeBlockId,
   cardRef,
   blockRefs,
@@ -88,6 +92,11 @@ export default function CardSurface({
             onPointerDown={
               interactive && onBlockPointerDown
                 ? (e) => onBlockPointerDown(e, block.id)
+                : undefined
+            }
+            onDoubleClick={
+              interactive && onBlockDoubleClick && block.type === "text"
+                ? () => onBlockDoubleClick(block.id)
                 : undefined
             }
             style={{

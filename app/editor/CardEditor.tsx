@@ -12,6 +12,7 @@ import EditorCanvas from "@/app/components/editor/EditorCanvas";
 import MobileHeader from "@/app/components/editor/MobileHeader";
 import ExportSurface from "@/app/components/ExportSurface";
 import CenterToolbar from "@/app/components/editor/CenterToolbar";
+import InlineTextEditor from "@/app/components/editor/InlineTextEditor";
 
 import { useScaleToFit } from "@/hooks/useScaleToFit";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
@@ -23,6 +24,8 @@ import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
 
 type Side = "front" | "back";
 
+type EditingState = { id: string; initialText: string } | null;
+
 export default function CardEditor() {
   const [side, setSide] = useState<Side>("front");
   const [activeTab, setActiveTab] = useState<TabKey | null>(null);
@@ -33,6 +36,7 @@ export default function CardEditor() {
   });
 
   const [activeBlockId, setActiveBlockId] = useState<string>("name");
+  const [editing, setEditing] = useState<EditingState>(null);
   const [design, setDesign] = useState<DesignKey>("plain");
   const [showGuides, setShowGuides] = useState(true);
   const exportRef = useRef<HTMLDivElement | null>(null);
@@ -66,6 +70,15 @@ export default function CardEditor() {
       ? editableBlocks // ← 編集できる真実を表へ
       : CARD_FULL_DESIGNS[design].back.blocks; // ← 裏は固定
 
+  const currentBlocks = getBlocksFor(side); // いま編集してる面の配列
+
+  const onBlockDoubleClick = (id: string) => {
+    const b = currentBlocks.find((x) => x.id === id);
+    if (!b || b.type !== "text") return;
+
+    setEditing({ id, initialText: b.text });
+  };
+
   const onChangeText = (id: string, value: string) => {
     if (side !== "front") return;
     previewText(id, value); // 入力中は set
@@ -81,6 +94,7 @@ export default function CardEditor() {
     blockId: string,
     opts: { scale: number }
   ) => {
+    if (editing) return; // ✅ 編集中はドラッグも選択もさせない
     setActiveBlockId(blockId); // 選択
     dragPointerDown(e, blockId, opts); // ドラッグ（scale 重要）
   };
@@ -283,6 +297,7 @@ export default function CardEditor() {
                 onPointerDown={
                   side === "front" ? handleBlockPointerDown : undefined
                 }
+                onBlockDoubleClick={onBlockDoubleClick}
                 activeBlockId={activeBlockId}
                 cardRef={cardRef}
                 blockRefs={blockRefs}
@@ -330,6 +345,25 @@ export default function CardEditor() {
         blocks={getBlocksFor(side)}
         design={design}
       />
+      {editing && (
+        <InlineTextEditor
+          targetEl={blockRefs.current[editing.id]}
+          text={
+            (currentBlocks.find((b) => b.id === editing.id && b.type === "text")
+              ?.text as string) ?? ""
+          }
+          onChangeText={(next) => previewText(editing.id, next)}
+          onCommit={() => {
+            const b = currentBlocks.find((x) => x.id === editing.id);
+            if (b && b.type === "text") commitText(editing.id, b.text);
+            setEditing(null);
+          }}
+          onCancel={() => {
+            previewText(editing.id, editing.initialText);
+            setEditing(null);
+          }}
+        />
+      )}
     </div>
   );
 }

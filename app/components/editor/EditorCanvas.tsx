@@ -19,6 +19,7 @@ type Props = {
     id: string,
     opts: { scale: number }
   ) => void;
+  onBlockDoubleClick?: (id: string) => void;
   cardRef: React.RefObject<HTMLDivElement | null>;
   blockRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
 };
@@ -30,6 +31,7 @@ export default function EditorCanvas({
   isPreview,
   showGuides,
   onPointerDown,
+  onBlockDoubleClick,
   activeBlockId,
   cardRef,
   blockRefs,
@@ -59,6 +61,7 @@ export default function EditorCanvas({
             h={CARD_BASE_H}
             interactive={!isPreview}
             onBlockPointerDown={(e, id) => onPointerDown?.(e, id, { scale })}
+            onBlockDoubleClick={isPreview ? undefined : onBlockDoubleClick}
             activeBlockId={activeBlockId}
             cardRef={cardRef}
             blockRefs={blockRefs}
