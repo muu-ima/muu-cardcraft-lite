@@ -26,50 +26,42 @@ CardCraft Lite は、Web上で名刺デザインを編集・プレビュー・�
 
 ### レイヤ構造
 
+```text
+
 blocks（状態）
-├─ CardSurface（描画）
-│ ├─ editor（scaleあり・操作可）
-│ ├─ preview（scaleあり・操作不可）
-│ └─ export（scaleなし・画面外）
+└─ CardSurface（描画）
+   ├─ editor   （scaleあり・操作可）
+   ├─ preview  （scaleあり・操作不可）
+   └─ export   （scaleなし・画面外）
 
-- 表示サイズはすべて `scale` で制御
-- 座標・フォントサイズは常に **実寸（480×303基準）**
-- 書き出しは DOM を信用せず **Canvasで再描画**
-
----
+```
 
 ## 🧩 コンポーネント構成（現行）
 
-app/
-├─ editor/
-│  └─ CardEditor.tsx
-│     └─ 状態管理・各レイヤの制御を行う親コンポーネント
-│
-├─ components/
-│  ├─ editor/
-│  │  ├─ EditorCanvas.tsx     // 編集用 CardSurface（操作可・scaleあり）
-│  │  ├─ CenterToolbar.tsx    // Canva風センターツールバー
-│  │  ├─ PrintGuides.tsx      // 安全領域・ガイド描画
-│  │  ├─ BottomSheet.tsx      // モバイル用操作UI
-│  │  └─ MobileBottomBar.tsx
-│  │
-│  ├─ panels/
-│  │  ├─ TextPanel.tsx        // テキスト編集パネル
-│  │  ├─ FontPanel.tsx        // フォント設定
-│  │  ├─ ExportPanel.tsx      // 書き出し操作
-│  │  └─ PanelSection.tsx     // パネルUI共通部品
-│  │
-│  ├─ tabs/
-│  │  └─ EditorTabs.tsx       // タブUI制御
-│  │
-│  ├─ ModalPreview.tsx        // プレビュー用 CardSurface（操作不可）
-│  └─ ExportSurface.tsx       // 書き出し専用 CardSurface（scaleなし）
-│
-├─ hooks/
-│  ├─ useCardBlocks.ts        // blocks管理・ドラッグ・Undo/Redo
-│  └─ useScaleToFit.ts        // ResizeObserver + scale算出
+```text
 
----
+app/
+└─ editor/
+   └─ CardEditor.tsx
+      └─ 状態管理・各レイヤの制御を行う親コンポーネント
+
+components/
+└─ editor/
+   ├─ EditorCanvas.tsx      // 編集用 CardSurface（操作可・scaleあり）
+   ├─ CenterToolbar.tsx     // Canva風センターツールバー
+   ├─ PrintGuides.tsx       // 安全領域・ガイド描画
+   ├─ BottomSheet.tsx       // モバイル用操作UI
+   └─ MobileBottomBar.tsx
+
+panels/
+├─ TextPanel.tsx            // テキスト編集パネル
+├─ FontPanel.tsx            // フォント設定
+├─ ExportPanel.tsx          // 書き出し操作
+└─ PanelSection.tsx         // パネルUI共通部品
+
+tabs/
+└─ EditorTabs.tsx           // タブUI制御
+```
 
 ## 🧪 実装メモ
 
