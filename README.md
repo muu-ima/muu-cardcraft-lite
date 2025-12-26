@@ -1,6 +1,6 @@
 # CardCraft Lite – 名刺作成エディタ（Prototype）
 
-CardCraft Lite は、Web上で名刺デザイン（裏面）を編集・プレビュー・画像書き出しできる  
+CardCraft Lite は、Web上で名刺デザインを編集・プレビュー・画像書き出しできる  
 **描画システム志向の名刺エディタ**です。
 
 現在は **エディタ構造・描画責務・スケール制御の確立**までを目的としたプロトタイプ段階です。
@@ -9,7 +9,7 @@ CardCraft Lite は、Web上で名刺デザイン（裏面）を編集・プレ�
 
 ## ✨ 主な機能（現時点）
 
-- 名刺サイズ（480 × 260）を基準とした **実寸ベース描画**
+- 名刺サイズ（480 × 303）を基準とした **実寸ベース描画**
 - テキストブロックの編集・ドラッグ配置
 - レスポンシブ対応（scale による表示縮小）
 - プレビューモーダル（編集不可・スケール追従）
@@ -33,31 +33,50 @@ blocks（状態）
 │ └─ export（scaleなし・画面外）
 
 - 表示サイズはすべて `scale` で制御
-- 座標・フォントサイズは常に **実寸（480×260基準）**
+- 座標・フォントサイズは常に **実寸（480×303基準）**
 - 書き出しは DOM を信用せず **Canvasで再描画**
 
 ---
 
-## 🧩 コンポーネント構成
+## 🧩 コンポーネント構成（現行）
 
 app/
+├─ editor/
+│  └─ CardEditor.tsx
+│     └─ 状態管理・各レイヤの制御を行う親コンポーネント
+│
 ├─ components/
-│ ├─ CardSurface.tsx // 名刺描画の唯一の責務
-│ ├─ ExportSurface.tsx // 書き出し専用DOM
-│ ├─ ModalPreview.tsx
-│ └─ Toolbar.tsx
+│  ├─ editor/
+│  │  ├─ EditorCanvas.tsx     // 編集用 CardSurface（操作可・scaleあり）
+│  │  ├─ CenterToolbar.tsx    // Canva風センターツールバー
+│  │  ├─ PrintGuides.tsx      // 安全領域・ガイド描画
+│  │  ├─ BottomSheet.tsx      // モバイル用操作UI
+│  │  └─ MobileBottomBar.tsx
+│  │
+│  ├─ panels/
+│  │  ├─ TextPanel.tsx        // テキスト編集パネル
+│  │  ├─ FontPanel.tsx        // フォント設定
+│  │  ├─ ExportPanel.tsx      // 書き出し操作
+│  │  └─ PanelSection.tsx     // パネルUI共通部品
+│  │
+│  ├─ tabs/
+│  │  └─ EditorTabs.tsx       // タブUI制御
+│  │
+│  ├─ ModalPreview.tsx        // プレビュー用 CardSurface（操作不可）
+│  └─ ExportSurface.tsx       // 書き出し専用 CardSurface（scaleなし）
 │
 ├─ hooks/
-│ ├─ useCardBlocks.ts // blocks管理・ドラッグ・書き出し
-│ └─ useScaleToFit.ts // ResizeObserver + scale算出
-│
-└─ editor/
-└─ CardEditor.tsx // 状態管理・制御の親
-
-yaml
-コードをコピーする
+│  ├─ useCardBlocks.ts        // blocks管理・ドラッグ・Undo/Redo
+│  └─ useScaleToFit.ts        // ResizeObserver + scale算出
 
 ---
+
+## 🧪 実装メモ
+
+- Editor / Preview / Export はすべて同一 blocks を参照
+- 表示倍率は scale のみで制御し、状態には一切含めない
+- ドラッグ時は見た目座標 → 実寸座標へ逆算
+- Export は DOM を信用せず Canvas で再描画
 
 ## 📐 スケール管理
 
@@ -83,10 +102,10 @@ yaml
 - [x] 描画アーキテクチャ確立
 - [x] スケール問題解消
 - [x] プレビューと書き出し分離
+- [x] タップ操作（基本操作のみ）
 - [ ] タブUIの完全分離
-- [ ] モバイル操作（タップ対応）
-- [ ] 表面デザイン編集対応
-- [ ] フォント選択・行揃え
+- [ ] ブロック整列（行揃え）
+- [ ] 表面デザインの本格編集対応（現在は表面のみ限定編集）
 
 ---
 
