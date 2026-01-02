@@ -54,7 +54,7 @@ export default function InlineTextEditor({
 
   return (
     <div
-      className="fixed z-[9999]"
+      className="fixed z-9999"
       style={{
         left: rect.left,
         top: rect.top,

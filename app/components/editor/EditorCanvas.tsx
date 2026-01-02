@@ -1,3 +1,4 @@
+// app/components/editor/EditorCanvas.tsx
 "use client";
 
 import React from "react";
