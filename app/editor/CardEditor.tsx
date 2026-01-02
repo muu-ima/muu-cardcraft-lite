@@ -37,6 +37,26 @@ export default function CardEditor() {
 
   const [activeBlockId, setActiveBlockId] = useState<string>("name");
   const [editing, setEditing] = useState<EditingState>(null);
+
+  const resetEditingState = () => {
+    if (editing) {
+      previewText(editing.id, editing.initialText);
+      setEditing(null);
+    }
+    setActiveBlockId("");
+  };
+
+  const togglePreview = () => {
+    setIsPreview((v) => {
+      const next = !v;
+      if (next) {
+        setActiveTab(null);
+        resetEditingState();
+      }
+      return next;
+    });
+  };
+
   const [design, setDesign] = useState<DesignKey>("plain");
   const [showGuides, setShowGuides] = useState(true);
   const exportRef = useRef<HTMLDivElement | null>(null);
@@ -93,9 +113,33 @@ export default function CardEditor() {
     blockId: string,
     opts: { scale: number }
   ) => {
-    if (editing) return; // ✅ 編集中はドラッグも選択もさせない
-    setActiveBlockId(blockId); // 選択
-    dragPointerDown(e, blockId, opts); // ドラッグ（scale 重要）
+    // ✅ 編集中でも「切り替え」は許可する
+    if (editing) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // ① 現在の編集中テキストを確定（previewTextで更新済みの b.text を commit）
+      const cur = currentBlocks.find((x) => x.id === editing.id);
+      if (cur && cur.type === "text") {
+        commitText(editing.id, cur.text);
+      }
+
+      // ② クリックしたブロックへ選択移動
+      setActiveBlockId(blockId);
+
+      // ③ クリック先が text なら編集を切り替える。違うなら編集終了
+      const next = currentBlocks.find((x) => x.id === blockId);
+      if (next && next.type === "text") {
+        setEditing({ id: blockId, initialText: next.text });
+      } else {
+        setEditing(null);
+      }
+      return; // ✅ 編集中はドラッグ開始しない
+    }
+
+    // 通常時はこれまで通り
+    setActiveBlockId(blockId);
+    dragPointerDown(e, blockId, opts);
   };
 
   const active = editableBlocks.find((b) => b.id === activeBlockId);
@@ -120,13 +164,7 @@ export default function CardEditor() {
       {/* ✅ Mobile Header（xl未満だけ表示） */}
       <MobileHeader
         isPreview={isPreview}
-        onTogglePreview={() => {
-          setIsPreview((v) => {
-            const next = !v;
-            if (next) setActiveTab(null);
-            return next;
-          });
-        }}
+        onTogglePreview={togglePreview}
         onUndo={undo}
         onRedo={redo}
         onHome={() => {
@@ -144,13 +182,7 @@ export default function CardEditor() {
           onUndo={undo}
           onRedo={redo}
           isPreview={isPreview}
-          onTogglePreview={() => {
-            setIsPreview((v) => {
-              const next = !v;
-              if (next) setActiveTab(null); // ✅ プレビュー入ったらパネル閉じる（おすすめ）
-              return next;
-            });
-          }}
+          onTogglePreview={togglePreview}
         />
       </div>
       <div className="hidden xl:block">
@@ -328,7 +360,7 @@ export default function CardEditor() {
                 w={CARD_BASE_W}
                 h={CARD_BASE_H}
                 interactive={false}
-                activeBlockId={activeBlockId}
+                activeBlockId={undefined}
                 className="shadow-lg"
               />
             </div>

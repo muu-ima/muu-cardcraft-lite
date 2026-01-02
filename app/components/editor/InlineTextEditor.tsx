@@ -42,13 +42,17 @@ export default function InlineTextEditor({
   }, [targetEl]);
 
   useEffect(() => {
-    ref.current?.focus();
+    if (!targetEl) return;
+
     const el = ref.current;
-    if (el) {
-      const n = el.value.length;
-      el.setSelectionRange(n, n);
-    }
-  }, []);
+    if (!el) return;
+
+    el.focus();
+
+    // カーソルを末尾に
+    const n = el.value.length;
+    el.setSelectionRange(n, n);
+  }, [targetEl]);
 
   if (!rect) return null;
 
@@ -80,7 +84,7 @@ export default function InlineTextEditor({
             onCommit();
           }
         }}
-        onBlur={() => onCommit()}
+        //onBlur={() => onCommit()}
         className="h-full w-full resize-none rounded-md border border-pink-300 bg-white/95 p-0 outline-none"
         style={{
           font: "inherit",
