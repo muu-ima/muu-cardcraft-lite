@@ -94,9 +94,13 @@ export default function CardSurface({
                 ? (e) => onBlockPointerDown(e, block.id)
                 : undefined
             }
-            onDoubleClick={
+            onClick={
               interactive && onBlockDoubleClick && block.type === "text"
-                ? () => onBlockDoubleClick(block.id)
+                ? () => {
+                    // ✅ 選択中をもう一回クリックしたら編集開始
+                    if (activeBlockId !== block.id) return;
+                    onBlockDoubleClick(block.id);
+                  }
                 : undefined
             }
             style={{

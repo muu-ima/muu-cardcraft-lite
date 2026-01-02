@@ -75,7 +75,6 @@ export default function CardEditor() {
   const onBlockDoubleClick = (id: string) => {
     const b = currentBlocks.find((x) => x.id === id);
     if (!b || b.type !== "text") return;
-
     setEditing({ id, initialText: b.text });
   };
 
