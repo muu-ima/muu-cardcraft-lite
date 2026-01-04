@@ -51,7 +51,7 @@ export default function Toolbar({
       ].join(" ")}
     >
       {/* 上：スクロールする領域 */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto no-scrollbar">
         <div className="flex flex-col items-center gap-2">
           {tools.map(({ key, label, Icon }) => {
             const active = activeTab === key;

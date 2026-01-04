@@ -57,7 +57,7 @@ export default function ModalPreview({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 sm:p-6">
-      <div className="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-xl max-h-[85vh] flex flex-col">
+      <div className="w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-xl max-h-[85vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between border-b px-4 py-3">
           <h2 className="text-sm font-semibold sm:text-base">

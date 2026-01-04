@@ -74,7 +74,7 @@ export default function CenterToolbar({
     // ① stickyの席（高さ固定）
     <div
       className={[
-        "sticky z-40 flex justify-center h-[60px]",
+        "sticky z-40 flex justify-center h-15",
         className ?? "",
       ].join(" ")}
       style={{ top: topPx }}
