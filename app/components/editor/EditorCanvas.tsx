@@ -23,6 +23,8 @@ type Props = {
   onBlockDoubleClick?: (id: string) => void;
   cardRef: React.RefObject<HTMLDivElement | null>;
   blockRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+  onSurfacePointerDown?: () => void;
+  editingBlockId?: string | null;
 };
 
 export default function EditorCanvas({
@@ -36,6 +38,8 @@ export default function EditorCanvas({
   activeBlockId,
   cardRef,
   blockRefs,
+  onSurfacePointerDown,
+  editingBlockId,
 }: Props) {
   return (
     <section className="flex flex-col items-center gap-3">
@@ -61,9 +65,11 @@ export default function EditorCanvas({
             w={CARD_BASE_W}
             h={CARD_BASE_H}
             interactive={!isPreview}
+            onSurfacePointerDown={() => onSurfacePointerDown?.()} // ✅ 外クリック用
             onBlockPointerDown={(e, id) => onPointerDown?.(e, id, { scale })}
             onBlockDoubleClick={isPreview ? undefined : onBlockDoubleClick}
             activeBlockId={activeBlockId}
+            editingBlockId={editingBlockId} // ✅ 二重文字防止用（後で実装）
             cardRef={cardRef}
             blockRefs={blockRefs}
             className={isPreview ? "shadow-lg" : ""}

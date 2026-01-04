@@ -1,12 +1,12 @@
 // app/components/CardSurface.tsx
 "use client";
 
+import React from "react";
 import type { CSSProperties, RefObject } from "react";
 import type { Block } from "@/shared/blocks";
 import type { DesignKey } from "@/shared/design";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
 import { FONT_DEFINITIONS } from "@/shared/fonts";
-import React from "react";
 
 type CardSurfaceProps = {
   blocks: Block[];
@@ -18,17 +18,20 @@ type CardSurfaceProps = {
   /** 編集可能か (ドラッグ有無) */
   interactive?: boolean;
 
-  /** 編集用（タップ/マウス共通） */
+  /** ブロック押下（選択/ドラッグ開始） */
   onBlockPointerDown?: (
     e: React.PointerEvent<HTMLDivElement>,
     blockId: string
   ) => void;
 
-  /** 選択中ブロック */
-  activeBlockId?: string;
-
   /** ダブルクリックで編集開始（text blockのみ） */
   onBlockDoubleClick?: (blockId: string) => void;
+
+  /** 外クリック（選択解除など） */
+  onSurfacePointerDown?: (e: React.PointerEvent<HTMLDivElement>) => void;
+
+  /** 選択中ブロック */
+  activeBlockId?: string;
 
   /** editor / export 用 ref */
   cardRef?: RefObject<HTMLDivElement | null>;
@@ -61,6 +64,7 @@ export default function CardSurface({
   interactive = false,
   onBlockPointerDown,
   onBlockDoubleClick,
+  onSurfacePointerDown,
   activeBlockId,
   cardRef,
   blockRefs,
@@ -70,6 +74,14 @@ export default function CardSurface({
   return (
     <div
       ref={cardRef}
+      onPointerDown={(e) => {
+        if (!interactive) return;
+
+        // ✅ ルートで外クリック判定（ブロック以外を押した）
+        const target = e.target as HTMLElement;
+        const hitBlock = target.closest("[data-block-id]");
+        if (!hitBlock) onSurfacePointerDown?.(e);
+      }}
       style={{
         width: w,
         height: h,
@@ -86,23 +98,21 @@ export default function CardSurface({
         return (
           <div
             key={block.id}
+            data-block-id={block.id}
             ref={(el) => {
               if (blockRefs) blockRefs.current[block.id] = el;
             }}
-            onPointerDown={
-              interactive && onBlockPointerDown
-                ? (e) => onBlockPointerDown(e, block.id)
-                : undefined
-            }
-            onClick={
+            onPointerDown={(e) => {
+              if (!interactive) return;
+              e.stopPropagation(); // ✅ 外クリック判定に伝播させない
+              onBlockPointerDown?.(e, block.id); // ✅ フォーカス/ドラッグ開始
+            }}
+            onDoubleClick={
               interactive && onBlockDoubleClick && block.type === "text"
-                ? () => {
-                    // ✅ 選択中をもう一回クリックしたら編集開始
-                    if (activeBlockId !== block.id) return;
-                    onBlockDoubleClick(block.id);
-                  }
+                ? () => onBlockDoubleClick(block.id)
                 : undefined
             }
+            // 「選択中をもう一回クリックで編集」は CardEditor 側で制御してるなら不要
             style={{
               position: "absolute",
               top: block.y,
