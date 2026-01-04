@@ -46,6 +46,10 @@ export function useCardBlocks() {
     redo,
   } = useHistoryState<Block[]>(INITIAL_BLOCKS);
 
+  const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
+  const startEditing = (id: string) => setEditingBlockId(id);
+  const stopEditing = () => setEditingBlockId(null);
+
   // -------------------------
   // テキスト入力（軽い）
   // -------------------------
@@ -192,6 +196,7 @@ export function useCardBlocks() {
     options?: DragOptions
   ) => {
     if (options?.disabled) return;
+    if (editingBlockId) return;
 
     movedRef.current = false;
     beforeDragRef.current = blocks.map((b) => ({ ...b })); // ✅ 開始時点を保存
@@ -311,5 +316,8 @@ export function useCardBlocks() {
     downloadImage,
     undo,
     redo,
+    editingBlockId,
+    startEditing,
+    stopEditing,
   };
 }

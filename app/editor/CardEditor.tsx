@@ -65,6 +65,9 @@ export default function CardEditor() {
     downloadImage,
     undo,
     redo,
+    editingBlockId,
+    startEditing,
+    stopEditing,
   } = useCardBlocks();
 
   const getBlocksFor = (s: Side) =>
@@ -91,7 +94,11 @@ export default function CardEditor() {
         const b = currentBlocks.find((x) => x.id === editing.id);
         if (b && b.type === "text") commitText(editing.id, b.text);
         setEditing(null);
+
+        // ✅ 編集中の“外クリック”は編集終了だけで止める（選択は維持）
+        return;
       }
+
       setActiveBlockId("");
       setActiveTab(null);
     }
@@ -118,12 +125,6 @@ export default function CardEditor() {
       }
       return next;
     });
-  };
-
-  const onBlockDoubleClick = (id: string) => {
-    const b = currentBlocks.find((x) => x.id === id);
-    if (!b || b.type !== "text") return;
-    setEditing({ id, initialText: b.text });
   };
 
   const onChangeText = (id: string, value: string) => {
@@ -326,7 +327,11 @@ export default function CardEditor() {
                   onPointerDown={
                     side === "front" ? handleBlockPointerDown : undefined
                   }
-                  onBlockDoubleClick={onBlockDoubleClick}
+                  onBlockDoubleClick={(id) => startEditing(id)} // ✅ ここで使う
+                  editingBlockId={editingBlockId}
+                  onStopEditing={stopEditing}
+                  onPreviewText={previewText}
+                  onCommitText={commitText}
                   activeBlockId={activeBlockId}
                   cardRef={cardRef}
                   blockRefs={blockRefs}

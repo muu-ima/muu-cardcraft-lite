@@ -18,6 +18,8 @@ type CardSurfaceProps = {
   /** 編集可能か (ドラッグ有無) */
   interactive?: boolean;
 
+  editingBlockId?: string | null;
+
   /** ブロック押下（選択/ドラッグ開始） */
   onBlockPointerDown?: (
     e: React.PointerEvent<HTMLDivElement>,
@@ -61,6 +63,7 @@ export default function CardSurface({
   design,
   w,
   h,
+  editingBlockId,
   interactive = false,
   onBlockPointerDown,
   onBlockDoubleClick,
@@ -99,9 +102,6 @@ export default function CardSurface({
           <div
             key={block.id}
             data-block-id={block.id}
-            ref={(el) => {
-              if (blockRefs) blockRefs.current[block.id] = el;
-            }}
             onPointerDown={(e) => {
               if (!interactive) return;
               e.stopPropagation(); // ✅ 外クリック判定に伝播させない
@@ -112,20 +112,25 @@ export default function CardSurface({
                 ? () => onBlockDoubleClick(block.id)
                 : undefined
             }
-            // 「選択中をもう一回クリックで編集」は CardEditor 側で制御してるなら不要
             style={{
               position: "absolute",
               top: block.y,
               left: block.x,
               cursor: interactive ? "move" : "default",
-              padding: "2px 4px",
+              // ✅ padding は外側から外す（リングのズレ原因）
+              padding: 0,
             }}
-            className={[
-              "select-none text-zinc-900 dark:text-zinc-50",
-              showSelection ? "ring-2 ring-pink-400/70 rounded" : "",
-            ].join(" ")}
+            className="select-none text-zinc-900 dark:text-zinc-50"
           >
+            {/* ✅ リング/実寸/計測は inner に寄せる */}
             <div
+              ref={(el) => {
+                if (blockRefs) blockRefs.current[block.id] = el; // ✅ 幅計測もここ
+              }}
+              className={[
+                "inline-block rounded px-1 py-0.5", // ✅ 文字にフィット
+                showSelection ? "ring-2 ring-pink-400/70" : "",
+              ].join(" ")}
               style={{
                 fontSize: `${block.fontSize}px`,
                 fontWeight: block.fontWeight,
@@ -139,7 +144,8 @@ export default function CardSurface({
                 wordBreak: "normal",
               }}
             >
-              {block.text}
+              {block.type === "text" &&
+                (editingBlockId === block.id ? null : block.text)}
             </div>
           </div>
         );
