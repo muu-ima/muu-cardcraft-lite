@@ -17,9 +17,9 @@ import InlineTextEditor from "@/app/components/editor/InlineTextEditor";
 import { useScaleToFit } from "@/hooks/useScaleToFit";
 import { useCardBlocks } from "@/hooks/useCardBlocks";
 import { useEditorLayout } from "@/hooks/useEditorLayout";
+import { useCardEditorState } from "@/hooks/useCardEditorState";
 import { type DesignKey } from "@/shared/design";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
-import type { TabKey } from "@/shared/editor";
 import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
 
 type Side = "front" | "back";
@@ -27,26 +27,10 @@ type Side = "front" | "back";
 type EditingState = { id: string; initialText: string } | null;
 
 export default function CardEditor() {
-  const [side, setSide] = useState<Side>("front");
-  const [activeTab, setActiveTab] = useState<TabKey | null>(null);
-  const [isPreview, setIsPreview] = useState(false);
-  const { panelVisible, sheetTitle } = useEditorLayout({
-    activeTab,
-    isPreview,
-  });
-
-  const [activeBlockId, setActiveBlockId] = useState<string>("name");
   const [editing, setEditing] = useState<EditingState>(null);
 
   const [design, setDesign] = useState<DesignKey>("plain");
-  const [showGuides, setShowGuides] = useState(true);
-
   const exportRef = useRef<HTMLDivElement | null>(null);
-
-  // ✅ 同じタブ押し = 閉じる / 別タブ = 切替
-  const onChangeTab = (tab: TabKey) => {
-    setActiveTab((prev) => (prev === tab ? null : tab));
-  };
 
   // ★ CanvasArea内の幅でスケール作る（表面/裏面 共通）
   const { ref: canvasRef, scale } = useScaleToFit(CARD_BASE_W, true);
@@ -70,12 +54,31 @@ export default function CardEditor() {
     stopEditing,
   } = useCardBlocks();
 
-  const getBlocksFor = (s: Side) =>
-    s === "front"
-      ? editableBlocks // ← 編集できる真実を表へ
-      : CARD_FULL_DESIGNS[design].back.blocks; // ← 裏は固定
+  const editor = useCardEditorState({
+    editableBlocks,
+    design,
+    setDesign,
+    cardRef,
+    blockRefs,
+    previewText,
+    commitText,
+    updateTextStyle,
+    bumpFontSize,
+    dragPointerDown,
+  });
 
-  const currentBlocks = getBlocksFor(side); // いま編集してる面の配列
+  const { state, actions, selectors } = editor;
+
+  const { panelVisible, sheetTitle } = useEditorLayout({
+    activeTab: state.activeTab,
+    isPreview: state.isPreview,
+  });
+
+  const getBlocksFor = (s: Side) =>
+    s === "front" ? editableBlocks : CARD_FULL_DESIGNS[design].back.blocks;
+
+  // いま編集してる面
+  const currentBlocks = getBlocksFor(state.side);
 
   const centerWrapRef = useRef<HTMLDivElement | null>(null);
   // CardEditor 内
@@ -99,8 +102,8 @@ export default function CardEditor() {
         return;
       }
 
-      setActiveBlockId("");
-      setActiveTab(null);
+      actions.setActiveBlockId("");
+      actions.setActiveTab(null);
     }
   };
   // CardEditor 内に追加
@@ -113,28 +116,18 @@ export default function CardEditor() {
       }
     }
     setEditing(null);
-    setActiveBlockId(""); // もしくは undefined にしたいなら state 型を変える
-    setActiveTab(null);
-  };
-
-  const togglePreview = () => {
-    setIsPreview((v) => {
-      const next = !v;
-      if (next) {
-        resetEditingState("commit"); // ✅ プレビュー入る瞬間にデフォへ
-      }
-      return next;
-    });
+    actions.setActiveBlockId(""); // もしくは undefined にしたいなら state 型を変える
+    actions.setActiveTab(null);
   };
 
   const onChangeText = (id: string, value: string) => {
-    if (side !== "front") return;
-    previewText(id, value); // 入力中は set
+    if (state.side !== "front") return;
+    previewText(id, value);
   };
 
   const onCommitText = (id: string, value: string) => {
-    if (side !== "front") return;
-    commitText(id, value); // 確定は commit
+    if (state.side !== "front") return;
+    commitText(id, value);
   };
 
   const handleBlockPointerDown = (
@@ -154,7 +147,7 @@ export default function CardEditor() {
       }
 
       // ② クリックしたブロックへ選択移動
-      setActiveBlockId(blockId);
+      actions.setActiveBlockId(blockId);
 
       // ③ クリック先が text なら編集を切り替える。違うなら編集終了
       const next = currentBlocks.find((x) => x.id === blockId);
@@ -167,28 +160,12 @@ export default function CardEditor() {
     }
 
     // 通常時はこれまで通り
-    setActiveBlockId(blockId);
+    actions.setActiveBlockId(blockId);
     dragPointerDown(e, blockId, opts);
   };
 
-  const active = editableBlocks.find((b) => b.id === activeBlockId);
-  const centerVisible = !isPreview && side === "front" && !!active;
-
-  const centerToolbarValue = active
-    ? {
-        fontKey: active.fontKey,
-        fontSize: active.fontSize ?? 16,
-        bold: active.fontWeight === "bold",
-        align: "left" as const, // ← いったん固定（Blockに無いので）
-      }
-    : null;
-
-  console.log({
-    activeBlockId,
-    active: !!active,
-    centerVisible,
-    value: centerToolbarValue,
-  });
+  const centerVisible = selectors.centerVisible;
+  const centerToolbarValue = selectors.centerToolbarValue;
 
   return (
     <div
@@ -200,41 +177,40 @@ export default function CardEditor() {
     >
       {/* ✅ Mobile Header（xl未満だけ表示） */}
       <MobileHeader
-        isPreview={isPreview}
-        onTogglePreview={togglePreview}
+        isPreview={state.isPreview}
+        onTogglePreview={actions.togglePreview}
         onUndo={undo}
         onRedo={redo}
         onHome={() => {
-          // 例：とりあえず「タブを閉じる」でもOK
-          setActiveTab(null);
-          setIsPreview(false);
-          setSide("front");
+          actions.setActiveTab(null);
+          actions.setIsPreview(false);
+          actions.setSide("front");
         }}
       />
       {/* ★ヘッダー分(56px)は上に空ける */}
       <div className="fixed left-0 top-14 z-40 h-[calc(100vh-56px)] w-14 border-r bg-white/70 backdrop-blur hidden xl:block">
         <Toolbar
-          activeTab={activeTab}
-          onChange={setActiveTab}
+          activeTab={state.activeTab}
+          isPreview={state.isPreview}
+          onChange={actions.setActiveTab}
           onUndo={undo}
           onRedo={redo}
-          isPreview={isPreview}
-          onTogglePreview={togglePreview}
+          onTogglePreview={actions.togglePreview}
         />
       </div>
       <div className="hidden xl:block">
         {/* Desktop: xl以上は左パネル */}
         <ToolPanel
           variant="desktop"
-          open={activeTab !== null}
-          onClose={() => setActiveTab(null)}
-          activeTab={activeTab}
-          activeBlockId={activeBlockId}
-          side={side}
-          onChangeSide={setSide}
-          blocks={getBlocksFor(side)}
+          open={state.activeTab !== null}
+          onClose={() => actions.setActiveTab(null)}
+          activeTab={state.activeTab}
+          activeBlockId={state.activeBlockId}
+          side={state.side}
+          isPreview={state.isPreview}
+          onChangeSide={actions.setSide}
+          blocks={getBlocksFor(state.side)}
           onAddBlock={addBlock}
-          isPreview={isPreview}
           onChangeText={onChangeText}
           onCommitText={onCommitText}
           onBumpFontSize={bumpFontSize}
@@ -252,21 +228,21 @@ export default function CardEditor() {
       {/* Mobile/Tablet: xl未満はボトムシート */}
       <div className="xl:hidden">
         <BottomSheet
-          open={activeTab !== null}
-          onClose={() => setActiveTab(null)}
+          open={state.activeTab !== null}
+          onClose={() => actions.setActiveTab(null)}
           title={sheetTitle}
         >
           <ToolPanel
             variant="sheet"
-            open={activeTab !== null}
-            onClose={() => setActiveTab(null)}
-            activeTab={activeTab}
-            activeBlockId={activeBlockId}
-            side={side}
-            onChangeSide={setSide}
-            blocks={getBlocksFor(side)}
+            open={state.activeTab !== null}
+            onClose={() => actions.setActiveTab(null)}
+            activeTab={state.activeTab}
+            activeBlockId={state.activeBlockId}
+            side={state.side}
+            onChangeSide={actions.setSide}
+            blocks={getBlocksFor(state.side)}
             onAddBlock={addBlock}
-            isPreview={isPreview}
+            isPreview={state.isPreview}
             onChangeText={onChangeText}
             onCommitText={onCommitText}
             onChangeFont={updateFont}
@@ -285,54 +261,40 @@ export default function CardEditor() {
       <div className="pt-14 xl:pt-0">
         <CanvasArea innerRef={canvasRef} panelVisible={panelVisible}>
           <div onPointerDownCapture={onAnyPointerDownCapture}>
-            <div ref={centerWrapRef}>
-              {/* ✅ 常に描画 */}
+            <div ref={centerWrapRef} className="relative z-60">
               <CenterToolbar
                 value={centerToolbarValue}
-                activeTab={activeTab}
-                onOpenTab={onChangeTab}
-                onChangeFontSize={(next) => {
-                  if (!centerToolbarValue) return;
-                  bumpFontSize(
-                    activeBlockId,
-                    next - centerToolbarValue.fontSize
-                  );
-                }}
-                onToggleBold={() => {
-                  if (!active) return;
-                  updateTextStyle(activeBlockId, {
-                    fontWeight:
-                      active.fontWeight === "bold" ? "normal" : "bold",
-                  });
-                }}
-                onChangeAlign={(align) =>
-                  updateTextStyle(activeBlockId, { align })
-                }
-                side={side}
-                onChangeSide={setSide}
-                showGuides={showGuides}
-                onToggleGuides={() => setShowGuides((v) => !v)}
-                disabled={isPreview || side !== "front"}
-                visible={centerVisible} // ←ここだけで出し分け
+                activeTab={state.activeTab}
+                onOpenTab={actions.onChangeTab}
+                onChangeFontSize={actions.onChangeFontSize}
+                onToggleBold={actions.onToggleBold}
+                onChangeAlign={actions.onChangeAlign}
+                side={state.side}
+                onChangeSide={actions.setSide}
+                showGuides={state.showGuides}
+                onToggleGuides={() => actions.setShowGuides((v) => !v)}
+                disabled={state.isPreview || state.side !== "front"}
+                visible={centerVisible}
               />
             </div>
+
             <div className="mx-auto flex w-full max-w-[980px] justify-center pt-28">
               <div className="w-full flex justify-center">
                 <EditorCanvas
-                  blocks={getBlocksFor(side)}
+                  blocks={getBlocksFor(state.side)}
                   design={design}
                   scale={scale}
-                  isPreview={isPreview}
-                  showGuides={showGuides}
+                  isPreview={state.isPreview}
+                  showGuides={state.showGuides}
                   onPointerDown={
-                    side === "front" ? handleBlockPointerDown : undefined
+                    state.side === "front" ? handleBlockPointerDown : undefined
                   }
                   onBlockDoubleClick={(id) => startEditing(id)} // ✅ ここで使う
                   editingBlockId={editingBlockId}
                   onStopEditing={stopEditing}
                   onPreviewText={previewText}
                   onCommitText={commitText}
-                  activeBlockId={activeBlockId}
+                  activeBlockId={state.activeBlockId}
                   cardRef={cardRef}
                   blockRefs={blockRefs}
                 />
@@ -342,8 +304,8 @@ export default function CardEditor() {
         </CanvasArea>
       </div>
       <ModalPreview
-        open={isPreview}
-        onClose={() => setIsPreview(false)}
+        open={state.isPreview}
+        onClose={() => actions.setIsPreview(false)}
         title="プレビュー"
       >
         {({ scale }) => (
@@ -359,7 +321,7 @@ export default function CardEditor() {
               }}
             >
               <CardSurface
-                blocks={getBlocksFor(side)}
+                blocks={getBlocksFor(state.side)}
                 design={design}
                 w={CARD_BASE_W}
                 h={CARD_BASE_H}
@@ -376,12 +338,15 @@ export default function CardEditor() {
         )}
       </ModalPreview>
 
-      {!isPreview && (
-        <MobileBottomBar activeTab={activeTab} onChangeTab={onChangeTab} />
+      {!state.isPreview && (
+        <MobileBottomBar
+          activeTab={state.activeTab}
+          onChangeTab={actions.onChangeTab}
+        />
       )}
       <ExportSurface
         ref={exportRef}
-        blocks={getBlocksFor(side)}
+        blocks={getBlocksFor(state.side)}
         design={design}
       />
       {editing && (
