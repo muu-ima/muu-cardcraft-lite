@@ -1,10 +1,11 @@
 // hooks/useCardBlocks.ts
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useBlocksHistory } from "@/hooks/card/useBlocksHistory";
 import { useBlockActions } from "@/hooks/card/useBlockActions";
 import { useBlockDrag } from "@/hooks/card/useBlockDrag";
+import { useHistoryHotkeys } from "@/hooks/card/useHistoryHotkeys";
 import { useExportImage } from "@/hooks/export/useExportImage";
 import type { Block } from "@/shared/blocks";
 
@@ -50,44 +51,8 @@ export function useCardBlocks() {
   const startEditing = (id: string) => setEditingBlockId(id);
   const stopEditing = () => setEditingBlockId(null);
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-
-      // 入力中はブラウザ標準のUndoに任せる（重要）
-      if (
-        target &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable)
-      ) {
-        return;
-      }
-
-      const ctrlOrCmd = e.ctrlKey || e.metaKey;
-      if (!ctrlOrCmd) return;
-
-      // Ctrl/Cmd + Z
-      if (e.key.toLowerCase() === "z" && !e.shiftKey) {
-        e.preventDefault();
-        undo();
-        return;
-      }
-
-      // Ctrl/Cmd + Shift + Z（or Ctrl/Cmd + Y）
-      if (
-        (e.key.toLowerCase() === "z" && e.shiftKey) ||
-        e.key.toLowerCase() === "y"
-      ) {
-        e.preventDefault();
-        redo();
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [undo, redo]);
-
+  useHistoryHotkeys({ undo, redo });
+  
   // カードと各ブロックの DOM
   const cardRef = useRef<HTMLDivElement | null>(null);
   const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
