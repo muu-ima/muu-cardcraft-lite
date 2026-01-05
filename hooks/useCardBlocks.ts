@@ -1,11 +1,12 @@
 // hooks/useCardBlocks.ts
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useBlocksHistory } from "@/hooks/card/useBlocksHistory";
 import { useBlockActions } from "@/hooks/card/useBlockActions";
 import { useBlockDrag } from "@/hooks/card/useBlockDrag";
 import { useHistoryHotkeys } from "@/hooks/card/useHistoryHotkeys";
+import { useInlineEditing } from "@/hooks/card/useInlineEditing";
 import { useExportImage } from "@/hooks/export/useExportImage";
 import type { Block } from "@/shared/blocks";
 
@@ -47,12 +48,14 @@ export function useCardBlocks() {
     bumpFontSize,
   } = useBlockActions({ set, commit, blocksRef });
 
-  const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
-  const startEditing = (id: string) => setEditingBlockId(id);
-  const stopEditing = () => setEditingBlockId(null);
+  const {
+  editingBlockId,
+  startEditing,
+  stopEditing,
+} = useInlineEditing();
 
   useHistoryHotkeys({ undo, redo });
-  
+
   // カードと各ブロックの DOM
   const cardRef = useRef<HTMLDivElement | null>(null);
   const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
