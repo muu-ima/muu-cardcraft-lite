@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useHistoryState } from "@/hooks/History";
+import { useBlocksHistory } from "@/hooks/card/useBlocksHistory";
 import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
 import type { FontKey } from "@/shared/fonts";
 import { useExportImage } from "@/hooks/export/useExportImage";
@@ -39,12 +39,16 @@ const INITIAL_BLOCKS: Block[] = [
 
 export function useCardBlocks() {
   const {
-    present: blocks,
+    blocks,
     set,
     commit,
     undo,
     redo,
-  } = useHistoryState<Block[]>(INITIAL_BLOCKS);
+    blocksRef,
+    setRef,
+    commitRef,
+  } = useBlocksHistory(INITIAL_BLOCKS);
+
 
   const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
   const startEditing = (id: string) => setEditingBlockId(id);
@@ -141,21 +145,6 @@ export function useCardBlocks() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [undo, redo]);
-
-  const blocksRef = useRef(blocks);
-  useEffect(() => {
-    blocksRef.current = blocks;
-  }, [blocks]);
-
-  const commitRef = useRef(commit);
-  useEffect(() => {
-    commitRef.current = commit;
-  }, [commit]);
-
-  const setRef = useRef(set);
-  useEffect(() => {
-    setRef.current = set;
-  }, [set]);
 
   const movedRef = useRef(false);
   const beforeDragRef = useRef<Block[] | null>(null);
@@ -297,7 +286,7 @@ export function useCardBlocks() {
       window.removeEventListener("pointerup", handleUp);
       window.removeEventListener("pointercancel", handleUp);
     };
-  }, [isDragging, dragTargetId, offset]);
+ }, [isDragging, dragTargetId, offset, blocksRef, setRef, commitRef]);
 
   const { downloadImage } = useExportImage();
 
