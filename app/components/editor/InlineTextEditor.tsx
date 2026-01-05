@@ -42,17 +42,35 @@ export default function InlineTextEditor({
   }, [targetEl]);
 
   useEffect(() => {
-    ref.current?.focus();
+    if (!targetEl) return;
+
     const el = ref.current;
-    if (el) {
-      const n = el.value.length;
-      el.setSelectionRange(n, n);
-    }
-  }, []);
+    if (!el) return;
+
+    el.focus();
+
+    // カーソルを末尾に
+    const n = el.value.length;
+    el.setSelectionRange(n, n);
+  }, [targetEl]);
 
   if (!rect) return null;
 
-  return (
+ if (!rect) return null;
+
+return (
+  <>
+    {/* ✅ 画面全体オーバーレイ：外クリックで commit */}
+    <div
+      className="fixed inset-0 z-9998"
+      onPointerDown={(e) => {
+        // ここに来た＝テキスト外をクリック
+        e.preventDefault();
+        onCommit(); // cancelにしたいなら onCancel()
+      }}
+    />
+
+    {/* ✅ テキスト入力本体：オーバーレイより前面 */}
     <div
       className="fixed z-9999"
       style={{
@@ -61,6 +79,8 @@ export default function InlineTextEditor({
         width: rect.width,
         height: rect.height,
       }}
+      // ✅ ここを押してもオーバーレイに伝播させない
+      onPointerDown={(e) => e.stopPropagation()}
     >
       <textarea
         ref={ref}
@@ -75,12 +95,11 @@ export default function InlineTextEditor({
             return;
           }
           if (e.key === "Enter" && !e.shiftKey) {
-            if (composingRef.current) return; // IME中は確定しない
+            if (composingRef.current) return;
             e.preventDefault();
             onCommit();
           }
         }}
-        onBlur={() => onCommit()}
         className="h-full w-full resize-none rounded-md border border-pink-300 bg-white/95 p-0 outline-none"
         style={{
           font: "inherit",
@@ -92,5 +111,6 @@ export default function InlineTextEditor({
         }}
       />
     </div>
-  );
+  </>
+);
 }

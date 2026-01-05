@@ -1,12 +1,12 @@
 // app/components/CardSurface.tsx
 "use client";
 
+import React from "react";
 import type { CSSProperties, RefObject } from "react";
 import type { Block } from "@/shared/blocks";
 import type { DesignKey } from "@/shared/design";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
 import { FONT_DEFINITIONS } from "@/shared/fonts";
-import React from "react";
 
 type CardSurfaceProps = {
   blocks: Block[];
@@ -18,17 +18,22 @@ type CardSurfaceProps = {
   /** 編集可能か (ドラッグ有無) */
   interactive?: boolean;
 
-  /** 編集用（タップ/マウス共通） */
+  editingBlockId?: string | null;
+
+  /** ブロック押下（選択/ドラッグ開始） */
   onBlockPointerDown?: (
     e: React.PointerEvent<HTMLDivElement>,
     blockId: string
   ) => void;
 
-  /** 選択中ブロック */
-  activeBlockId?: string;
-
   /** ダブルクリックで編集開始（text blockのみ） */
   onBlockDoubleClick?: (blockId: string) => void;
+
+  /** 外クリック（選択解除など） */
+  onSurfacePointerDown?: (e: React.PointerEvent<HTMLDivElement>) => void;
+
+  /** 選択中ブロック */
+  activeBlockId?: string;
 
   /** editor / export 用 ref */
   cardRef?: RefObject<HTMLDivElement | null>;
@@ -58,9 +63,11 @@ export default function CardSurface({
   design,
   w,
   h,
+  editingBlockId,
   interactive = false,
   onBlockPointerDown,
   onBlockDoubleClick,
+  onSurfacePointerDown,
   activeBlockId,
   cardRef,
   blockRefs,
@@ -70,6 +77,14 @@ export default function CardSurface({
   return (
     <div
       ref={cardRef}
+      onPointerDown={(e) => {
+        if (!interactive) return;
+
+        // ✅ ルートで外クリック判定（ブロック以外を押した）
+        const target = e.target as HTMLElement;
+        const hitBlock = target.closest("[data-block-id]");
+        if (!hitBlock) onSurfacePointerDown?.(e);
+      }}
       style={{
         width: w,
         height: h,
@@ -86,14 +101,12 @@ export default function CardSurface({
         return (
           <div
             key={block.id}
-            ref={(el) => {
-              if (blockRefs) blockRefs.current[block.id] = el;
+            data-block-id={block.id}
+            onPointerDown={(e) => {
+              if (!interactive) return;
+              e.stopPropagation(); // ✅ 外クリック判定に伝播させない
+              onBlockPointerDown?.(e, block.id); // ✅ フォーカス/ドラッグ開始
             }}
-            onPointerDown={
-              interactive && onBlockPointerDown
-                ? (e) => onBlockPointerDown(e, block.id)
-                : undefined
-            }
             onDoubleClick={
               interactive && onBlockDoubleClick && block.type === "text"
                 ? () => onBlockDoubleClick(block.id)
@@ -104,14 +117,20 @@ export default function CardSurface({
               top: block.y,
               left: block.x,
               cursor: interactive ? "move" : "default",
-              padding: "2px 4px",
+              // ✅ padding は外側から外す（リングのズレ原因）
+              padding: 0,
             }}
-            className={[
-              "select-none text-zinc-900 dark:text-zinc-50",
-              showSelection ? "ring-2 ring-pink-400/70 rounded" : "",
-            ].join(" ")}
+            className="select-none text-zinc-900 dark:text-zinc-50"
           >
+            {/* ✅ リング/実寸/計測は inner に寄せる */}
             <div
+              ref={(el) => {
+                if (blockRefs) blockRefs.current[block.id] = el; // ✅ 幅計測もここ
+              }}
+              className={[
+                "inline-block rounded px-1 py-0.5", // ✅ 文字にフィット
+                showSelection ? "ring-2 ring-pink-400/70" : "",
+              ].join(" ")}
               style={{
                 fontSize: `${block.fontSize}px`,
                 fontWeight: block.fontWeight,
@@ -125,7 +144,8 @@ export default function CardSurface({
                 wordBreak: "normal",
               }}
             >
-              {block.text}
+              {block.type === "text" &&
+                (editingBlockId === block.id ? null : block.text)}
             </div>
           </div>
         );

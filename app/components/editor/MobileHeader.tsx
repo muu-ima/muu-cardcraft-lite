@@ -20,7 +20,7 @@ function IconButton({
   onClick: () => void;
   children: React.ReactNode;
 }) {
-  return (
+    return (
     <button
       type="button"
       aria-label={label}

@@ -43,6 +43,9 @@ type Props = {
 
   /** ヘッダー高さに合わせた top（デフォ 76px） */
   topPx?: number;
+
+  /** 表示するか（透明にするだけで高さは確保） */
+  visible?: boolean;
 };
 
 export default function CenterToolbar({
@@ -61,136 +64,146 @@ export default function CenterToolbar({
 
   disabled = false,
   className,
+  visible = true,
   topPx = 76,
 }: Props) {
   const isFontOpen = activeTab === "font";
   const isTextOpen = activeTab === "text";
 
   return (
+    // ① stickyの席（高さ固定）
     <div
-      className={["sticky z-40 flex justify-center", className ?? ""].join(" ")}
+      className={[
+        "sticky z-40 flex justify-center h-15",
+        className ?? "",
+      ].join(" ")}
       style={{ top: topPx }}
     >
+      {/* ② 透明化レイヤー */}
       <div
         className={[
-          "pointer-events-auto flex items-center gap-2 rounded-2xl border bg-white/85 px-3 py-2 backdrop-blur",
-          "shadow-[0_1px_0_rgba(0,0,0,0.06),0_10px_22px_rgba(0,0,0,0.10)]",
-          "min-w-[720px]", // ← 追加（好みで 680〜820 くらい）
-          "justify-between", // ← 追加（左右に余白感出る）
-          value === null ? "opacity-70" : "",
+          "transition-opacity duration-150",
+          visible ? "opacity-100" : "opacity-0",
+          visible ? "pointer-events-auto" : "pointer-events-none",
         ].join(" ")}
       >
-        {/* ✅ ① テキスト系：valueがある時だけ描画（ここ以外で value を触らない） */}
-        {value && (
-          <>
-            {/* フォント */}
-            <ToolbarButton
-              pressed={isFontOpen}
-              disabled={disabled}
-              onClick={() => onOpenTab("font")}
-              className="max-w-[220px]"
-              title="フォントを開く"
-            >
-              <span className="max-w-[180px] truncate">{value.fontKey}</span>
-              <span className="text-zinc-400">▼</span>
-            </ToolbarButton>
-
-            <Divider />
-
-            {/* サイズ */}
-            <IconButton
-              label="文字サイズを下げる"
-              disabled={disabled}
-              onClick={() =>
-                onChangeFontSize(clamp(value.fontSize - 1, 6, 200))
-              }
-            >
-              −
-            </IconButton>
-
-            <ToolbarButton
-              pressed={isTextOpen}
-              disabled={disabled}
-              onClick={() => onOpenTab("text")}
-              className="min-w-14 justify-center border"
-              title="テキスト設定を開く"
-            >
-              <span className="tabular-nums">{value.fontSize}</span>
-            </ToolbarButton>
-
-            <IconButton
-              label="文字サイズを上げる"
-              disabled={disabled}
-              onClick={() =>
-                onChangeFontSize(clamp(value.fontSize + 1, 6, 200))
-              }
-            >
-              +
-            </IconButton>
-
-            <Divider />
-
-            {/* 太字 */}
-            <ToggleButton
-              label="太字"
-              active={value.bold}
-              disabled={disabled}
-              onClick={onToggleBold}
-            >
-              B
-            </ToggleButton>
-
-            {/* 整列 */}
-            <div className="ml-1 flex items-center gap-1">
-              <ToggleButton
-                label="左揃え"
-                active={value.align === "left"}
-                disabled={disabled}
-                onClick={() => onChangeAlign("left")}
-              >
-                L
-              </ToggleButton>
-              <ToggleButton
-                label="中央揃え"
-                active={value.align === "center"}
-                disabled={disabled}
-                onClick={() => onChangeAlign("center")}
-              >
-                C
-              </ToggleButton>
-              <ToggleButton
-                label="右揃え"
-                active={value.align === "right"}
-                disabled={disabled}
-                onClick={() => onChangeAlign("right")}
-              >
-                R
-              </ToggleButton>
-            </div>
-          </>
-        )}
-
-        {/* ✅ ② 右側：表/裏・ガイドは「常に出す」 */}
-        {/* value が無い時に区切り線だけ残したくないなら条件にする */}
-        <Divider />
-
-        <Segmented
-          disabled={disabled}
-          value={side}
-          options={[
-            { value: "front", label: "表面" },
-            { value: "back", label: "裏面" },
-          ]}
-          onChange={onChangeSide}
-        />
-
-        <TogglePill
-          disabled={disabled}
-          active={showGuides}
-          onClick={onToggleGuides}
+        {/* ③ ツールバー本体（見た目はここ1回） */}
+        <div
+          className={[
+            "flex h-[60px] items-center gap-2 rounded-2xl border bg-white/85 px-3 py-2 backdrop-blur",
+            "shadow-[0_1px_0_rgba(0,0,0,0.06),0_10px_22px_rgba(0,0,0,0.10)]",
+            "min-w-[720px] justify-between whitespace-nowrap",
+            value === null ? "opacity-70" : "",
+          ].join(" ")}
         >
-          ガイド {showGuides ? "ON" : "OFF"}
-        </TogglePill>
+          {/* ✅ ① テキスト系 */}
+          {value && (
+            <>
+              <ToolbarButton
+                pressed={isFontOpen}
+                disabled={disabled}
+                onClick={() => onOpenTab("font")}
+                className="max-w-[220px]"
+                title="フォントを開く"
+              >
+                <span className="max-w-[180px] truncate">{value.fontKey}</span>
+                <span className="text-zinc-400">▼</span>
+              </ToolbarButton>
+
+              <Divider />
+
+              <IconButton
+                label="文字サイズを下げる"
+                disabled={disabled}
+                onClick={() =>
+                  onChangeFontSize(clamp(value.fontSize - 1, 6, 200))
+                }
+              >
+                −
+              </IconButton>
+
+              <ToolbarButton
+                pressed={isTextOpen}
+                disabled={disabled}
+                onClick={() => onOpenTab("text")}
+                className="min-w-14 justify-center border"
+                title="テキスト設定を開く"
+              >
+                <span className="tabular-nums">{value.fontSize}</span>
+              </ToolbarButton>
+
+              <IconButton
+                label="文字サイズを上げる"
+                disabled={disabled}
+                onClick={() =>
+                  onChangeFontSize(clamp(value.fontSize + 1, 6, 200))
+                }
+              >
+                +
+              </IconButton>
+
+              <Divider />
+
+              <ToggleButton
+                label="太字"
+                active={value.bold}
+                disabled={disabled}
+                onClick={onToggleBold}
+              >
+                B
+              </ToggleButton>
+
+              <div className="ml-1 flex items-center gap-1">
+                <ToggleButton
+                  label="左揃え"
+                  active={value.align === "left"}
+                  disabled={disabled}
+                  onClick={() => onChangeAlign("left")}
+                >
+                  L
+                </ToggleButton>
+                <ToggleButton
+                  label="中央揃え"
+                  active={value.align === "center"}
+                  disabled={disabled}
+                  onClick={() => onChangeAlign("center")}
+                >
+                  C
+                </ToggleButton>
+                <ToggleButton
+                  label="右揃え"
+                  active={value.align === "right"}
+                  disabled={disabled}
+                  onClick={() => onChangeAlign("right")}
+                >
+                  R
+                </ToggleButton>
+              </div>
+            </>
+          )}
+
+          {/* ✅ Dividerは value がある時だけにするのが自然 */}
+          {value && <Divider />}
+
+          {/* ✅ ② 右側：常に出す */}
+          <Segmented
+            disabled={disabled}
+            value={side}
+            options={[
+              { value: "front", label: "表面" },
+              { value: "back", label: "裏面" },
+            ]}
+            onChange={onChangeSide}
+          />
+
+          <TogglePill
+            disabled={disabled}
+            active={showGuides}
+            onClick={onToggleGuides}
+          >
+            ガイド {showGuides ? "ON" : "OFF"}
+          </TogglePill>
+        </div>
       </div>
     </div>
   );
