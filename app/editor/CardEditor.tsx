@@ -280,7 +280,7 @@ export default function CardEditor() {
       <div className="pt-14 xl:pt-0">
         <CanvasArea innerRef={canvasRef} panelVisible={panelVisible}>
           <div onPointerDownCapture={onAnyPointerDownCapture}>
-            <div ref={centerWrapRef} className="hidden xl:block relative z-60">
+            <div ref={centerWrapRef} className="hidden md:block relative z-60">
               <CenterToolbar
                 value={centerToolbarValue}
                 activeTab={state.activeTab}
