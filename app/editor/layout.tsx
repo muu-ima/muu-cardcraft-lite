@@ -7,8 +7,11 @@ export default function EditorLayout({ children }: { children: ReactNode }) {
       className="
         fixed inset-0 overflow-hidden
         flex flex-col
-        bg-[#EEF3F8]
-      "
+              "
+      style={{
+        background:
+          "radial-gradient(circle at top, #eef5fb 0%, #f7f3f8 40%, #ffffff 75%)",
+      }}
     >
       <header
         className="

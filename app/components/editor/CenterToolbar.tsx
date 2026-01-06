@@ -3,6 +3,15 @@
 import React from "react";
 import type { TabKey } from "@/shared/editor";
 import { FontKey } from "@/shared/fonts";
+import {
+  ChevronDown,
+  Minus,
+  Plus,
+  Bold as BoldIcon,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+} from "lucide-react";
 
 export type Align = "left" | "center" | "right";
 
@@ -73,10 +82,9 @@ export default function CenterToolbar({
   return (
     // ① stickyの席（高さ固定）
     <div
-      className={[
-        "sticky z-40 flex justify-center h-15",
-        className ?? "",
-      ].join(" ")}
+      className={["sticky z-40 flex justify-center h-15", className ?? ""].join(
+        " "
+      )}
       style={{ top: topPx }}
     >
       {/* ② 透明化レイヤー */}
@@ -90,7 +98,7 @@ export default function CenterToolbar({
         {/* ③ ツールバー本体（見た目はここ1回） */}
         <div
           className={[
-            "flex h-[60px] items-center gap-2 rounded-2xl border bg-white/85 px-3 py-2 backdrop-blur",
+            "flex h-11 items-center gap-2 rounded-2xl border bg-white/85 px-3 py-2 backdrop-blur",
             "shadow-[0_1px_0_rgba(0,0,0,0.06),0_10px_22px_rgba(0,0,0,0.10)]",
             "min-w-[720px] justify-between whitespace-nowrap",
             value === null ? "opacity-70" : "",
@@ -99,7 +107,7 @@ export default function CenterToolbar({
           {/* ✅ ① テキスト系 */}
           {value && (
             <>
-              <ToolbarButton
+              <GhostButton
                 pressed={isFontOpen}
                 disabled={disabled}
                 onClick={() => onOpenTab("font")}
@@ -107,22 +115,22 @@ export default function CenterToolbar({
                 title="フォントを開く"
               >
                 <span className="max-w-[180px] truncate">{value.fontKey}</span>
-                <span className="text-zinc-400">▼</span>
-              </ToolbarButton>
+                <ChevronDown className="h-4 w-4 text-zinc-400" />
+              </GhostButton>
 
               <Divider />
 
-              <IconButton
-                label="文字サイズを下げる"
+              <GhostButton
+                ariaLabel="文字サイズを下げる"
                 disabled={disabled}
                 onClick={() =>
                   onChangeFontSize(clamp(value.fontSize - 1, 6, 200))
                 }
               >
-                −
-              </IconButton>
+                <Minus className="h-4 w-4" />
+              </GhostButton>
 
-              <ToolbarButton
+              <GhostButton
                 pressed={isTextOpen}
                 disabled={disabled}
                 onClick={() => onOpenTab("text")}
@@ -130,54 +138,56 @@ export default function CenterToolbar({
                 title="テキスト設定を開く"
               >
                 <span className="tabular-nums">{value.fontSize}</span>
-              </ToolbarButton>
+              </GhostButton>
 
-              <IconButton
-                label="文字サイズを上げる"
+              <GhostButton
+                ariaLabel="文字サイズを上げる"
                 disabled={disabled}
                 onClick={() =>
                   onChangeFontSize(clamp(value.fontSize + 1, 6, 200))
                 }
               >
-                +
-              </IconButton>
+                <Plus className="h-4 w-4" />
+              </GhostButton>
 
               <Divider />
 
-              <ToggleButton
-                label="太字"
-                active={value.bold}
+              <GhostButton
+                ariaLabel="太字"
+                pressed={value.bold}
                 disabled={disabled}
                 onClick={onToggleBold}
               >
-                B
-              </ToggleButton>
+                <BoldIcon className="h-4 w-4" />
+              </GhostButton>
 
               <div className="ml-1 flex items-center gap-1">
-                <ToggleButton
-                  label="左揃え"
-                  active={value.align === "left"}
+                <GhostButton
+                  ariaLabel="左揃え"
+                  pressed={value.align === "left"}
                   disabled={disabled}
                   onClick={() => onChangeAlign("left")}
                 >
-                  L
-                </ToggleButton>
-                <ToggleButton
-                  label="中央揃え"
-                  active={value.align === "center"}
+                  <AlignLeft className="h-4 w-4" />
+                </GhostButton>
+
+                <GhostButton
+                  ariaLabel="中央揃え"
+                  pressed={value.align === "center"}
                   disabled={disabled}
                   onClick={() => onChangeAlign("center")}
                 >
-                  C
-                </ToggleButton>
-                <ToggleButton
-                  label="右揃え"
-                  active={value.align === "right"}
+                  <AlignCenter className="h-4 w-4" />
+                </GhostButton>
+
+                <GhostButton
+                  ariaLabel="右揃え"
+                  pressed={value.align === "right"}
                   disabled={disabled}
                   onClick={() => onChangeAlign("right")}
                 >
-                  R
-                </ToggleButton>
+                  <AlignRight className="h-4 w-4" />
+                </GhostButton>
               </div>
             </>
           )}
@@ -196,13 +206,13 @@ export default function CenterToolbar({
             onChange={onChangeSide}
           />
 
-          <TogglePill
+          <GhostButton
             disabled={disabled}
-            active={showGuides}
+            pressed={showGuides}
             onClick={onToggleGuides}
           >
             ガイド {showGuides ? "ON" : "OFF"}
-          </TogglePill>
+          </GhostButton>
         </div>
       </div>
     </div>
@@ -212,20 +222,21 @@ export default function CenterToolbar({
 /* ---------------- helpers ---------------- */
 
 function Divider() {
-  return <div className="mx-1 h-6 w-px bg-zinc-200" />;
+  return <div className="mx-1 h-6 w-px bg-black/10" />;
 }
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
-function ToolbarButton({
+function GhostButton({
   children,
   onClick,
   pressed,
   disabled,
   className,
   title,
+  ariaLabel,
 }: {
   children: React.ReactNode;
   onClick: () => void;
@@ -233,19 +244,22 @@ function ToolbarButton({
   disabled?: boolean;
   className?: string;
   title?: string;
+  ariaLabel?: string;
 }) {
   return (
     <button
       type="button"
-      onClick={() => !disabled && onClick()}
-      disabled={disabled}
       title={title}
+      aria-label={ariaLabel}
       aria-pressed={!!pressed}
+      disabled={disabled}
+      onClick={() => !disabled && onClick()}
       className={[
-        "flex h-9 items-center gap-2 rounded-xl px-3 text-sm",
-        "hover:bg-zinc-100 active:bg-zinc-200",
-        pressed ? "bg-pink-50 ring-1 ring-pink-200" : "",
-        disabled ? "cursor-not-allowed" : "",
+        "inline-flex h-9 items-center gap-2 rounded-xl px-2.5 text-sm",
+        "select-none",
+        "hover:bg-black/5 active:bg-black/10",
+        pressed ? "bg-pink-50 ring-1 ring-inset ring-pink-200" : "",
+        disabled ? "opacity-60 cursor-not-allowed" : "",
         className ?? "",
       ].join(" ")}
     >
@@ -254,13 +268,13 @@ function ToolbarButton({
   );
 }
 
-function IconButton({
-  children,
+function IconOnly({
+  icon,
   onClick,
   label,
   disabled,
 }: {
-  children: React.ReactNode;
+  icon: React.ReactNode;
   onClick: () => void;
   label: string;
   disabled?: boolean;
@@ -269,51 +283,115 @@ function IconButton({
     <button
       type="button"
       aria-label={label}
-      onClick={() => !disabled && onClick()}
       disabled={disabled}
+      onClick={() => !disabled && onClick()}
       className={[
-        "h-9 w-9 rounded-xl border bg-white text-sm",
-        "hover:bg-zinc-50 active:bg-zinc-100",
-        disabled ? "cursor-not-allowed" : "",
+        "h-9 w-9 rounded-xl",
+        "inline-flex items-center justify-center",
+        "hover:bg-black/5 active:bg-black/10",
+        disabled ? "opacity-60 cursor-not-allowed" : "",
       ].join(" ")}
     >
-      {children}
+      {icon}
     </button>
   );
 }
 
-function ToggleButton({
-  children,
-  onClick,
-  label,
-  active,
-  disabled,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-  label: string;
-  active: boolean;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      aria-pressed={active}
-      onClick={() => !disabled && onClick()}
-      disabled={disabled}
-      className={[
-        "h-9 w-9 rounded-xl border text-sm",
-        active
-          ? "bg-pink-50 ring-1 ring-pink-200"
-          : "bg-white hover:bg-zinc-50 active:bg-zinc-100",
-        disabled ? "cursor-not-allowed" : "",
-      ].join(" ")}
-    >
-      {children}
-    </button>
-  );
-}
+// function ToolbarButton({
+//   children,
+//   onClick,
+//   pressed,
+//   disabled,
+//   className,
+//   title,
+// }: {
+//   children: React.ReactNode;
+//   onClick: () => void;
+//   pressed?: boolean;
+//   disabled?: boolean;
+//   className?: string;
+//   title?: string;
+// }) {
+//   return (
+//     <button
+//       type="button"
+//       onClick={() => !disabled && onClick()}
+//       disabled={disabled}
+//       title={title}
+//       aria-pressed={!!pressed}
+//       className={[
+//         "flex h-9 items-center gap-2 rounded-xl px-3 text-sm",
+//         "hover:bg-zinc-100 active:bg-zinc-200",
+//         pressed ? "bg-pink-50 ring-1 ring-pink-200" : "",
+//         disabled ? "cursor-not-allowed" : "",
+//         className ?? "",
+//       ].join(" ")}
+//     >
+//       {children}
+//     </button>
+//   );
+// }
+
+// function IconButton({
+//   children,
+//   onClick,
+//   label,
+//   disabled,
+// }: {
+//   children: React.ReactNode;
+//   onClick: () => void;
+//   label: string;
+//   disabled?: boolean;
+// }) {
+//   return (
+//     <button
+//       type="button"
+//       aria-label={label}
+//       onClick={() => !disabled && onClick()}
+//       disabled={disabled}
+//       className={[
+//         "h-9 w-9 rounded-xl border bg-white text-sm",
+//         "hover:bg-zinc-50 active:bg-zinc-100",
+//         disabled ? "cursor-not-allowed" : "",
+//       ].join(" ")}
+//     >
+//       {children}
+//     </button>
+//   );
+// }
+
+// function ToggleButton({
+//   children,
+//   onClick,
+//   label,
+//   active,
+//   disabled,
+// }: {
+//   children: React.ReactNode;
+//   onClick: () => void;
+//   label: string;
+//   active: boolean;
+//   disabled?: boolean;
+// }) {
+//   return (
+//     <button
+//       type="button"
+//       aria-label={label}
+//       aria-pressed={active}
+//       onClick={() => !disabled && onClick()}
+//       disabled={disabled}
+//       className={[
+//         "h-9 w-9 rounded-xl border text-sm",
+//         active
+//           ? "bg-pink-50 ring-1 ring-pink-200"
+//           : "bg-white hover:bg-zinc-50 active:bg-zinc-100",
+//         disabled ? "cursor-not-allowed" : "",
+//       ].join(" ")}
+//     >
+//       {children}
+//     </button>
+//   );
+// }
 
 function Segmented<T extends string>({
   value,
@@ -353,32 +431,32 @@ function Segmented<T extends string>({
   );
 }
 
-function TogglePill({
-  children,
-  active,
-  onClick,
-  disabled,
-}: {
-  children: React.ReactNode;
-  active: boolean;
-  onClick: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      disabled={disabled}
-      onClick={() => !disabled && onClick()}
-      className={[
-        "h-9 rounded-xl border px-3 text-sm",
-        active
-          ? "bg-pink-50 ring-1 ring-pink-200"
-          : "bg-white hover:bg-zinc-50 active:bg-zinc-100",
-        disabled ? "cursor-not-allowed opacity-70" : "",
-      ].join(" ")}
-    >
-      {children}
-    </button>
-  );
-}
+// function TogglePill({
+//   children,
+//   active,
+//   onClick,
+//   disabled,
+// }: {
+//   children: React.ReactNode;
+//   active: boolean;
+//   onClick: () => void;
+//   disabled?: boolean;
+// }) {
+//   return (
+//     <button
+//       type="button"
+//       aria-pressed={active}
+//       disabled={disabled}
+//       onClick={() => !disabled && onClick()}
+//       className={[
+//         "h-9 rounded-xl border px-3 text-sm",
+//         active
+//           ? "bg-pink-50 ring-1 ring-pink-200"
+//           : "bg-white hover:bg-zinc-50 active:bg-zinc-100",
+//         disabled ? "cursor-not-allowed opacity-70" : "",
+//       ].join(" ")}
+//     >
+//       {children}
+//     </button>
+//   );
+// }

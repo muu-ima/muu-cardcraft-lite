@@ -1,7 +1,7 @@
-//app/editor/components/BottomSheet.tsx
+// app/editor/components/BottomSheet.tsx
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 export default function BottomSheet({
   open,
@@ -14,13 +14,57 @@ export default function BottomSheet({
   title?: string;
   children: React.ReactNode;
 }) {
+  const panelRef = useRef<HTMLDivElement | null>(null);
+
+  // ✅ 背景スクロール停止 + ESCで閉じる
+  useEffect(() => {
+    if (!open) return;
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+
+    // 可能ならパネルにフォーカス（キーボード操作の安定）
+    requestAnimationFrame(() => panelRef.current?.focus());
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 xl:hidden">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+      {/* ✅ overlay */}
+      <button
+        type="button"
+        aria-label="Close bottom sheet"
+        className="absolute inset-0 bg-black/30"
+        onClick={onClose}
+      />
 
-      <div className="absolute bottom-0 left-0 w-full rounded-t-2xl bg-white shadow-xl">
+      {/* ✅ sheet */}
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        className="
+          absolute bottom-0 left-0 w-full
+          rounded-t-2xl bg-white shadow-xl
+          outline-none
+        "
+        // ✅ overlayクリックは閉じるけど、シート内クリックは閉じない
+        onClick={(e) => e.stopPropagation()}
+        // ✅ iOSで下が被るのを回避
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
         <div className="sticky top-0 z-10 rounded-t-2xl bg-white/90 backdrop-blur">
           <div className="mx-auto w-12 pt-2">
             <div className="h-1.5 w-full rounded-full bg-zinc-300" />
@@ -42,6 +86,7 @@ export default function BottomSheet({
           <div className="h-px bg-zinc-200" />
         </div>
 
+        {/* ✅ コンテンツ */}
         <div className="max-h-[70vh] overflow-y-auto px-4 pt-3 pb-24">
           {children}
         </div>

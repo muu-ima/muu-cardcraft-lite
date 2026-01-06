@@ -12,7 +12,7 @@ export default function DesignTab({ value, onChange }: Props) {
     <div className="space-y-3 pt-4 text-sm">
       <p>カードの背景デザインを選択してください。</p>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid gap-2">
         <button
           type="button"
           onClick={() => onChange("plain")}
