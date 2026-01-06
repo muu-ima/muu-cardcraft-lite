@@ -32,8 +32,18 @@ export default function CardEditor() {
   const [design, setDesign] = useState<DesignKey>("plain");
   const exportRef = useRef<HTMLDivElement | null>(null);
 
-  // ★ CanvasArea内の幅でスケール作る（表面/裏面 共通）
-  const { ref: canvasRef, scale } = useScaleToFit(CARD_BASE_W, true);
+  // ✅ CanvasArea 自体の ref（スクロール/レイアウト用）
+  const canvasAreaRef = useRef<HTMLDivElement | null>(null);
+
+  const { ref: scaleWrapRefMobile, scale: scaleMobile } = useScaleToFit(
+    CARD_BASE_W,
+    true
+  );
+
+  const { ref: scaleWrapRefDesktop, scale: scaleDesktop } = useScaleToFit(
+    CARD_BASE_W,
+    true
+  );
 
   const {
     blocks: editableBlocks,
@@ -242,7 +252,7 @@ export default function CardEditor() {
 
         {/* Canvas (mobile/tablet) */}
         <div className="pt-14">
-          <CanvasArea innerRef={canvasRef}>
+          <CanvasArea innerRef={canvasAreaRef}>
             <div onPointerDownCapture={onAnyPointerDownCapture}>
               {/* CenterToolbar: md以上で表示（モバイルは別UI運用） */}
               <div
@@ -266,29 +276,33 @@ export default function CardEditor() {
               </div>
 
               <div className="flex w-full justify-center">
-                <EditorCanvas
-                  blocks={getBlocksFor(state.side)}
-                  design={design}
-                  scale={scale}
-                  isPreview={state.isPreview}
-                  showGuides={state.showGuides}
-                  onPointerDown={
-                    state.side === "front" ? handleBlockPointerDown : undefined
-                  }
-                  onBlockDoubleClick={(id) => {
-                    const b = editableBlocks.find((block) => block.id === id);
-                    if (!b || b.type !== "text") return;
-                    startEditing(id, b.text);
-                  }}
-                  editingBlockId={editingBlockId}
-                  editingText={editingText}
-                  onChangeEditingText={setEditingText}
-                  onStopEditing={stopEditing}
-                  onCommitText={commitText}
-                  activeBlockId={state.activeBlockId}
-                  cardRef={cardRef}
-                  blockRefs={blockRefs}
-                />
+                <div ref={scaleWrapRefMobile} className="w-full min-w-0 px-3">
+                  <EditorCanvas
+                    blocks={getBlocksFor(state.side)}
+                    design={design}
+                    scale={scaleMobile}
+                    isPreview={state.isPreview}
+                    showGuides={state.showGuides}
+                    onPointerDown={
+                      state.side === "front"
+                        ? handleBlockPointerDown
+                        : undefined
+                    }
+                    onBlockDoubleClick={(id) => {
+                      const b = editableBlocks.find((block) => block.id === id);
+                      if (!b || b.type !== "text") return;
+                      startEditing(id, b.text);
+                    }}
+                    editingBlockId={editingBlockId}
+                    editingText={editingText}
+                    onChangeEditingText={setEditingText}
+                    onStopEditing={stopEditing}
+                    onCommitText={commitText}
+                    activeBlockId={state.activeBlockId}
+                    cardRef={cardRef}
+                    blockRefs={blockRefs}
+                  />
+                </div>
               </div>
             </div>
           </CanvasArea>
@@ -345,7 +359,7 @@ export default function CardEditor() {
 
         {/* 右：キャンバス領域 */}
         <main className="flex-1 min-w-0 min-h-0">
-          <CanvasArea innerRef={canvasRef}>
+          <CanvasArea innerRef={canvasAreaRef}>
             <div onPointerDownCapture={onAnyPointerDownCapture}>
               {/* Desktopは常時表示でOK */}
               <div ref={centerWrapRef} className="relative z-50">
@@ -366,29 +380,34 @@ export default function CardEditor() {
               </div>
 
               <div className="flex w-full justify-center">
-                <EditorCanvas
-                  blocks={getBlocksFor(state.side)}
-                  design={design}
-                  scale={scale}
-                  isPreview={state.isPreview}
-                  showGuides={state.showGuides}
-                  onPointerDown={
-                    state.side === "front" ? handleBlockPointerDown : undefined
-                  }
-                  onBlockDoubleClick={(id) => {
-                    const b = editableBlocks.find((block) => block.id === id);
-                    if (!b || b.type !== "text") return;
-                    startEditing(id, b.text);
-                  }}
-                  editingBlockId={editingBlockId}
-                  editingText={editingText}
-                  onChangeEditingText={setEditingText}
-                  onStopEditing={stopEditing}
-                  onCommitText={commitText}
-                  activeBlockId={state.activeBlockId}
-                  cardRef={cardRef}
-                  blockRefs={blockRefs}
-                />
+                {/* ✅ ここが「縮む箱」= 実効幅を測る対象 */}
+                <div ref={scaleWrapRefDesktop} className="w-full min-w-0 px-3">
+                  <EditorCanvas
+                    blocks={getBlocksFor(state.side)}
+                    design={design}
+                    scale={scaleDesktop}
+                    isPreview={state.isPreview}
+                    showGuides={state.showGuides}
+                    onPointerDown={
+                      state.side === "front"
+                        ? handleBlockPointerDown
+                        : undefined
+                    }
+                    onBlockDoubleClick={(id) => {
+                      const b = editableBlocks.find((block) => block.id === id);
+                      if (!b || b.type !== "text") return;
+                      startEditing(id, b.text);
+                    }}
+                    editingBlockId={editingBlockId}
+                    editingText={editingText}
+                    onChangeEditingText={setEditingText}
+                    onStopEditing={stopEditing}
+                    onCommitText={commitText}
+                    activeBlockId={state.activeBlockId}
+                    cardRef={cardRef}
+                    blockRefs={blockRefs}
+                  />
+                </div>
               </div>
             </div>
           </CanvasArea>
