@@ -52,6 +52,8 @@ export default function CardEditor() {
     editingBlockId,
     startEditing,
     stopEditing,
+    editingText,
+    setEditingText,
   } = useCardBlocks();
 
   const editor = useCardEditorState({
@@ -289,10 +291,15 @@ export default function CardEditor() {
                   onPointerDown={
                     state.side === "front" ? handleBlockPointerDown : undefined
                   }
-                  onBlockDoubleClick={(id) => startEditing(id)} // ✅ ここで使う
+                  onBlockDoubleClick={(id) => {
+                    const b = editableBlocks.find((block) => block.id === id);
+                    if (!b || b.type !== "text") return;
+                    startEditing(id, b.text);
+                  }}
                   editingBlockId={editingBlockId}
+                  editingText={editingText}
+                  onChangeEditingText={setEditingText}
                   onStopEditing={stopEditing}
-                  onPreviewText={previewText}
                   onCommitText={commitText}
                   activeBlockId={state.activeBlockId}
                   cardRef={cardRef}

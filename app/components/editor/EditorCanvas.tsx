@@ -1,7 +1,7 @@
 // app/components/editor/EditorCanvas.tsx
 "use client";
 
-import React from "react";
+import React, { useLayoutEffect, useRef } from "react";
 import CardSurface from "@/app/components/CardSurface";
 import PrintGuides from "@/app/components/editor/PrintGuides";
 import type { Block } from "@/shared/blocks";
@@ -35,6 +35,8 @@ type Props = {
   onStopEditing?: () => void;
   onPreviewText?: (id: string, text: string) => void;
   onCommitText?: (id: string, text: string) => void;
+  editingText?: string;
+  onChangeEditingText?: (text: string) => void;
 };
 
 export default function EditorCanvas({
@@ -51,9 +53,39 @@ export default function EditorCanvas({
   onSurfacePointerDown,
   editingBlockId,
   onStopEditing,
-  onPreviewText,
   onCommitText,
+  editingText,
+  onChangeEditingText,
 }: Props) {
+  const taRef = useRef<HTMLTextAreaElement | null>(null);
+  useLayoutEffect(() => {
+    if (isPreview) return;
+
+    const ta = taRef.current;
+    if (!ta) return;
+
+    if (!editingBlockId) {
+      // 編集終了時：サイズ指定を外す（任意）
+      ta.style.width = "";
+      ta.style.height = "";
+      return;
+    }
+
+    const b = blocks.find((x) => x.id === editingBlockId);
+    if (!b || b.type !== "text") return;
+
+    const el = blockRefs.current[b.id];
+    if (!el) return;
+
+    const r = el.getBoundingClientRect();
+
+    const w = r.width / scale;
+    const h = r.height / scale;
+
+    ta.style.width = `${Math.max(20, w)}px`;
+    ta.style.height = `${Math.max(20, h)}px`;
+  }, [isPreview, editingBlockId, blocks, scale, blockRefs]);
+
   return (
     <section className="flex flex-col items-center gap-3">
       <div
@@ -86,7 +118,7 @@ export default function EditorCanvas({
             onSurfacePointerDown={() => onSurfacePointerDown?.()}
             onBlockPointerDown={(e, id) => onPointerDown?.(e, id, { scale })}
             onBlockDoubleClick={isPreview ? undefined : onBlockDoubleClick}
-            activeBlockId={activeBlockId}
+            activeBlockId={editingBlockId ? undefined : activeBlockId}
             editingBlockId={editingBlockId} // ✅ 二重文字防止
             blockRefs={blockRefs}
             className={isPreview ? "shadow-lg" : ""}
@@ -99,24 +131,32 @@ export default function EditorCanvas({
               const b = blocks.find((x) => x.id === editingBlockId);
               if (!b || b.type !== "text") return null;
 
+              function fontFamilyFromKey(fontKey: string) {
+                switch (fontKey) {
+                  case "serif":
+                    return `"Noto Serif JP", serif`;
+                  case "maru":
+                    return `"Zen Maru Gothic", sans-serif`;
+                  default:
+                    return `"Noto Sans JP", system-ui, sans-serif`;
+                }
+              }
+
               return (
                 <textarea
                   key={b.id}
                   autoFocus
-                  defaultValue={b.text}
+                  value={editingText ?? ""}
                   onPointerDown={(e) => e.stopPropagation()}
-                  onChange={(e) => onPreviewText?.(b.id, e.currentTarget.value)}
-                  onBlur={(e) => {
-                    onCommitText?.(b.id, e.currentTarget.value);
+                  onChange={(e) => onChangeEditingText?.(e.currentTarget.value)}
+                  onBlur={() => {
+                    onCommitText?.(b.id, editingText ?? "");
                     onStopEditing?.();
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
-                      onCommitText?.(
-                        b.id,
-                        (e.currentTarget as HTMLTextAreaElement).value
-                      );
+                      onCommitText?.(b.id, editingText ?? "");
                       onStopEditing?.();
                     }
                     if (e.key === "Escape") {
@@ -128,17 +168,22 @@ export default function EditorCanvas({
                     position: "absolute",
                     left: b.x,
                     top: b.y,
+
                     fontSize: `${b.fontSize}px`,
                     fontWeight: b.fontWeight,
-                    minWidth: 120,
+                    fontFamily: fontFamilyFromKey(b.fontKey),
+
                     padding: "2px 6px",
-                    borderRadius: 6,
-                    border: "2px solid rgba(236, 72, 153, 0.7)",
-                    background: "rgba(255,255,255,0.92)",
                     lineHeight: 1.2,
+
+                    background: "transparent",
+                    borderRadius: 6,
+                    border: "1px solid rgba(236, 72, 153, 0.45)",
+
+                    outline: "none",
+                    resize: "none",
                     zIndex: 50,
                   }}
-                  className="resize-none outline-none"
                 />
               );
             })()}

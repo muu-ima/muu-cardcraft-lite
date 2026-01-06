@@ -96,7 +96,10 @@ export default function CardSurface({
       className={`rounded-xl border shadow-md ${className ?? ""}`}
     >
       {blocks.map((block) => {
-        const showSelection = interactive && activeBlockId === block.id;
+        const showSelection =
+          interactive &&
+          activeBlockId === block.id &&
+          editingBlockId !== block.id;
 
         return (
           <div
@@ -128,8 +131,8 @@ export default function CardSurface({
                 if (blockRefs) blockRefs.current[block.id] = el; // ✅ 幅計測もここ
               }}
               className={[
-                "inline-block rounded px-1 py-0.5", // ✅ 文字にフィット
-                showSelection ? "ring-2 ring-pink-400/70" : "",
+                "inline-block rounded px-1 py-0.5",
+                showSelection ? "outline-2 outline-pink-400/70" : "",
               ].join(" ")}
               style={{
                 fontSize: `${block.fontSize}px`,
@@ -142,6 +145,7 @@ export default function CardSurface({
                 maxWidth: "none",
                 overflowWrap: "normal",
                 wordBreak: "normal",
+                outlineOffset: 2,
               }}
             >
               {block.type === "text" &&

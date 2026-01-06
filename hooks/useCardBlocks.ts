@@ -49,10 +49,12 @@ export function useCardBlocks() {
   } = useBlockActions({ set, commit, blocksRef });
 
   const {
-  editingBlockId,
-  startEditing,
-  stopEditing,
-} = useInlineEditing();
+    editingBlockId,
+    editingText,
+    setEditingText,
+    startEditing,
+    stopEditing,
+  } = useInlineEditing();
 
   useHistoryHotkeys({ undo, redo });
 
@@ -88,6 +90,8 @@ export function useCardBlocks() {
     undo,
     redo,
     editingBlockId,
+    editingText,
+    setEditingText,
     startEditing,
     stopEditing,
   };
