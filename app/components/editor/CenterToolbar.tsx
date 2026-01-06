@@ -268,34 +268,34 @@ function GhostButton({
   );
 }
 
-function IconOnly({
-  icon,
-  onClick,
-  label,
-  disabled,
-}: {
-  icon: React.ReactNode;
-  onClick: () => void;
-  label: string;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      disabled={disabled}
-      onClick={() => !disabled && onClick()}
-      className={[
-        "h-9 w-9 rounded-xl",
-        "inline-flex items-center justify-center",
-        "hover:bg-black/5 active:bg-black/10",
-        disabled ? "opacity-60 cursor-not-allowed" : "",
-      ].join(" ")}
-    >
-      {icon}
-    </button>
-  );
-}
+// function IconOnly({
+//   icon,
+//   onClick,
+//   label,
+//   disabled,
+// }: {
+//   icon: React.ReactNode;
+//   onClick: () => void;
+//   label: string;
+//   disabled?: boolean;
+// }) {
+//   return (
+//     <button
+//       type="button"
+//       aria-label={label}
+//       disabled={disabled}
+//       onClick={() => !disabled && onClick()}
+//       className={[
+//         "h-9 w-9 rounded-xl",
+//         "inline-flex items-center justify-center",
+//         "hover:bg-black/5 active:bg-black/10",
+//         disabled ? "opacity-60 cursor-not-allowed" : "",
+//       ].join(" ")}
+//     >
+//       {icon}
+//     </button>
+//   );
+// }
 
 // function ToolbarButton({
 //   children,

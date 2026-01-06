@@ -19,6 +19,7 @@ import { useCardBlocks } from "@/hooks/useCardBlocks";
 import { useEditorLayout } from "@/hooks/useEditorLayout";
 import { useCardEditorState } from "@/hooks/useCardEditorState";
 import { type DesignKey } from "@/shared/design";
+import type { TabKey } from "@/shared/editor";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
 import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
 
@@ -28,7 +29,6 @@ type EditingState = { id: string; initialText: string } | null;
 
 export default function CardEditor() {
   const [editing, setEditing] = useState<EditingState>(null);
-
   const [design, setDesign] = useState<DesignKey>("plain");
   const exportRef = useRef<HTMLDivElement | null>(null);
 
@@ -75,6 +75,22 @@ export default function CardEditor() {
     activeTab: state.activeTab,
     isPreview: state.isPreview,
   });
+
+  // 追加（CardEditor 内）
+  type SheetSnap = "collapsed" | "half" | "full";
+
+  const [sheetSnap, setSheetSnap] = useState<SheetSnap>("collapsed");
+
+  const closeSheet = () => {
+    setSheetSnap("collapsed");
+    actions.setActiveTab(null);
+  };
+
+  // ✅ “タブを開く”はイベントでやる（useEffectで同期しない）
+  const openTab = (tab: TabKey) => {
+    actions.onChangeTab(tab);
+    setSheetSnap((s) => (s === "collapsed" ? "half" : s));
+  };
 
   const getBlocksFor = (s: Side) =>
     s === "front" ? editableBlocks : CARD_FULL_DESIGNS[design].back.blocks;
@@ -194,7 +210,7 @@ export default function CardEditor() {
         <Toolbar
           activeTab={state.activeTab}
           isPreview={state.isPreview}
-          onChange={actions.setActiveTab}
+          onChange={openTab}
           onUndo={undo}
           onRedo={redo}
           onTogglePreview={actions.togglePreview}
@@ -230,14 +246,15 @@ export default function CardEditor() {
       {/* Mobile/Tablet: xl未満はボトムシート */}
       <div className="xl:hidden">
         <BottomSheet
-          open={state.activeTab !== null}
-          onClose={() => actions.setActiveTab(null)}
+          snap={sheetSnap}
+          onChangeSnap={setSheetSnap}
+          onClose={closeSheet}
           title={sheetTitle}
         >
           <ToolPanel
             variant="sheet"
-            open={state.activeTab !== null}
-            onClose={() => actions.setActiveTab(null)}
+            open={sheetSnap !== "collapsed"}
+            onClose={closeSheet}
             activeTab={state.activeTab}
             activeBlockId={state.activeBlockId}
             side={state.side}
@@ -263,11 +280,11 @@ export default function CardEditor() {
       <div className="pt-14 xl:pt-0">
         <CanvasArea innerRef={canvasRef} panelVisible={panelVisible}>
           <div onPointerDownCapture={onAnyPointerDownCapture}>
-            <div ref={centerWrapRef} className="relative z-60">
+            <div ref={centerWrapRef} className="hidden xl:block relative z-60">
               <CenterToolbar
                 value={centerToolbarValue}
                 activeTab={state.activeTab}
-                onOpenTab={actions.onChangeTab}
+                onOpenTab={openTab}
                 onChangeFontSize={actions.onChangeFontSize}
                 onToggleBold={actions.onToggleBold}
                 onChangeAlign={actions.onChangeAlign}
@@ -346,10 +363,7 @@ export default function CardEditor() {
       </ModalPreview>
 
       {!state.isPreview && (
-        <MobileBottomBar
-          activeTab={state.activeTab}
-          onChangeTab={actions.onChangeTab}
-        />
+        <MobileBottomBar activeTab={state.activeTab} onChangeTab={openTab} />
       )}
       <ExportSurface
         ref={exportRef}
