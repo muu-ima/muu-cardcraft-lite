@@ -1,6 +1,7 @@
 "use client";
 
 import type { Block } from "@/shared/blocks";
+import type { FontSizeDelta } from "@/shared/fonts";
 
 type Props = {
   blocks: Block[];
@@ -9,7 +10,7 @@ type Props = {
   onChangeText?: (id: string, value: string) => void; // ← optionalに
   onCommitText?: (id: string, value: string) => void;
   canEdit?: boolean; // あってもいい（なくてもOK）
-  onBumpFontSize?: (id: string, delta: number) => void;
+  onBumpFontSize?: (id: string, delta: FontSizeDelta) => void;
 };
 
 export default function TextTab({
@@ -53,7 +54,7 @@ export default function TextTab({
           <button
             type="button"
             disabled={isPreview || !onBumpFontSize}
-            onClick={() => onBumpFontSize?.(block.id, -2)}
+            onClick={() => onBumpFontSize?.(block.id, -1)}
           >
             −
           </button>
@@ -63,7 +64,7 @@ export default function TextTab({
           <button
             type="button"
             disabled={isPreview || !onBumpFontSize}
-            onClick={() => onBumpFontSize?.(block.id, +2)}
+            onClick={() => onBumpFontSize?.(block.id, +1)}
           >
             ＋
           </button>

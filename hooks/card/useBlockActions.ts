@@ -1,7 +1,7 @@
 // hooks/card/useBlockActions.ts
 "use client";
 
-import type { FontKey } from "@/shared/fonts";
+import type { FontKey, FontSizeDelta } from "@/shared/fonts";
 import type { Block } from "@/shared/blocks";
 
 type TextStylePatch = Partial<{
@@ -71,10 +71,10 @@ export function useBlockActions(history: HistoryApi) {
     set((prev) => prev.map((b) => (b.id === id ? { ...b, fontSize: next } : b)));
   };
 
-  const bumpFontSize = (id: string, delta: number) => {
-    const cur = blocksRef.current.find((b) => b.id === id)?.fontSize ?? 16;
-    updateFontSize(id, cur + delta);
-  };
+const bumpFontSize = (id: string, delta: FontSizeDelta) => {
+  const cur = blocksRef.current.find((b) => b.id === id)?.fontSize ?? 16;
+  updateFontSize(id, cur + delta);
+};
 
   return {
     previewText,

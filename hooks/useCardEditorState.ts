@@ -5,6 +5,7 @@ import type { Align, EditorBlock, TextBlock } from "@/shared/editorBlocks";
 import type { TabKey } from "@/shared/editor";
 import type { DesignKey } from "@/shared/design";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
+import type { FontSizeDelta } from "@/shared/fonts"; // ★ 追加
 
 type Side = "front" | "back";
 type EditingState = { id: string; initialText: string } | null;
@@ -21,7 +22,9 @@ export function useCardEditorState(args: {
   commitText: (id: string, value: string) => void;
 
   updateTextStyle: (id: string, patch: Partial<TextBlock>) => void;
-  bumpFontSize: (id: string, delta: number) => void;
+
+  // 🔽 ここを number → FontSizeDelta に変更
+  bumpFontSize: (id: string, delta: FontSizeDelta) => void;
 
   dragPointerDown: (
     e: React.PointerEvent<Element>,
@@ -33,7 +36,7 @@ export function useCardEditorState(args: {
     editableBlocks,
     design,
     cardRef,
-    blockRefs, // ← 使ってないなら後で TODO か、argsから一旦外してもOK
+    blockRefs,
     previewText,
     commitText,
     updateTextStyle,
@@ -202,10 +205,19 @@ export function useCardEditorState(args: {
           fontWeight: active.fontWeight === "bold" ? "normal" : "bold",
         });
       },
+
+      // 🔽 ここを FontSizeDelta 前提で変換する
       onChangeFontSize: (next: number) => {
         if (!centerToolbarValue) return;
-        bumpFontSize(activeBlockId, next - centerToolbarValue.fontSize);
+
+        const current = centerToolbarValue.fontSize;
+        const diff = next - current;
+        if (diff === 0) return;
+
+        const delta: FontSizeDelta = diff > 0 ? 1 : -1;
+        bumpFontSize(activeBlockId, delta);
       },
+
       onChangeAlign: (align: Align) => {
         updateTextStyle(activeBlockId, { align });
       },

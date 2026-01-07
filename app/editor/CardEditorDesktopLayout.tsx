@@ -7,6 +7,7 @@ import CenterToolbar from "@/app/components/editor/CenterToolbar";
 import EditorCanvas from "@/app/components/editor/EditorCanvas";
 import ToolPanel from "@/app/components/ToolPanel";
 import type { CardEditorDesktopProps } from "./CardEditor.types";
+import clsx from "clsx"; // 使ってなかったら追加（なくても三項演算子で書ける）
 
 export function CardEditorDesktopLayout(props: CardEditorDesktopProps) {
   const {
@@ -43,9 +44,11 @@ export function CardEditorDesktopLayout(props: CardEditorDesktopProps) {
     redo,
   } = props;
 
+  const isPanelOpen = state.activeTab !== null;
+
   return (
-    <div className="hidden xl:flex w-full h-[calc(100dvh-56px)]">
-      {/* 左：縦ツール（幅として参加） */}
+    <div className="flex w-full h-[calc(100dvh-56px)]">
+      {/* 左：縦ツール */}
       <aside className="w-14 shrink-0 border-r bg-white/70 backdrop-blur h-full min-h-0">
         <Toolbar
           activeTab={state.activeTab}
@@ -57,8 +60,8 @@ export function CardEditorDesktopLayout(props: CardEditorDesktopProps) {
         />
       </aside>
 
-      {/* 左：詳細パネル（開いてる時だけ幅を取る） */}
-      {state.activeTab !== null && (
+      {/* 左：詳細パネル */}
+      {isPanelOpen && (
         <aside className="w-[416px] shrink-0 border-r bg-white">
           <ToolPanel
             variant="desktop"
@@ -109,8 +112,14 @@ export function CardEditorDesktopLayout(props: CardEditorDesktopProps) {
             </div>
 
             <div className="flex w-full justify-center">
-              {/* ✅ ここが「縮む箱」 */}
-              <div ref={scaleWrapRefDesktop} className="w-full min-w-0 px-3">
+              {/* ✅ タブ開閉で max-width を変える箱 */}
+              <div
+                ref={scaleWrapRefDesktop}
+                className={clsx(
+                  "w-full min-w-0 px-3 transition-[max-width] duration-200",
+                  isPanelOpen ? "max-w-[960px]" : "max-w-7xl"
+                )}
+              >
                 <EditorCanvas
                   blocks={getBlocksFor(state.side)}
                   design={design}
@@ -118,14 +127,10 @@ export function CardEditorDesktopLayout(props: CardEditorDesktopProps) {
                   isPreview={state.isPreview}
                   showGuides={state.showGuides}
                   onPointerDown={
-                    state.side === "front"
-                      ? handleBlockPointerDown
-                      : undefined
+                    state.side === "front" ? handleBlockPointerDown : undefined
                   }
                   onBlockDoubleClick={(id) => {
-                    const b = editableBlocks.find(
-                      (block) => block.id === id
-                    );
+                    const b = editableBlocks.find((block) => block.id === id);
                     if (!b || b.type !== "text") return;
                     startEditing(id, b.text);
                   }}

@@ -1,6 +1,7 @@
 "use client";
 
 import type { Block } from "@/shared/blocks";
+import type { FontSizeDelta } from "@/shared/fonts";
 import TextTab from "@/app/components/tabs/TextTab";
 import PanelSection from "@/app/components/panels/PanelSection";
 
@@ -63,7 +64,7 @@ export default function TextPanel({
   isPreview: boolean;
   onChangeText: (id: string, value: string) => void;
   onCommitText: (id: string, value: string) => void;
-  onBumpFontSize?: (id: string, delta: number) => void;
+  onBumpFontSize?: (id: string, delta: FontSizeDelta) => void;
 }) {
   return (
     <div className="space-y-4">
