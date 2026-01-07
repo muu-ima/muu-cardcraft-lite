@@ -93,3 +93,54 @@ export type CardEditorMobileProps = {
   undo: () => void;
   redo: () => void;
 };
+
+export type CardEditorDesktopProps = {
+  // ---- 状態 & アクション
+  state: EditorStateForLayout;
+  actions: EditorActionsForLayout;
+  openTab: (tab: TabKey) => void;
+
+  // ---- レイアウト / スケール
+  canvasAreaRef: RefObject<HTMLDivElement | null>;
+  centerWrapRef: RefObject<HTMLDivElement | null>;
+  scaleWrapRefDesktop: RefObject<HTMLDivElement | null>;
+  scaleDesktop: number;
+
+  // ---- blocks / デザイン
+  getBlocksFor: (side: Side) => Block[];
+  editableBlocks: Block[];
+  addBlock: () => void;
+  onChangeText: (id: string, value: string) => void;
+  onCommitText: (id: string, value: string) => void;
+  updateFont: (id: string, fontKey: FontKey) => void;
+  bumpFontSize: (id: string, delta: number) => void;
+  design: DesignKey;
+  setDesign: (d: DesignKey) => void;
+
+  // ---- export
+  exportRef: RefObject<HTMLDivElement | null>;
+  downloadImage: (format: "png" | "jpeg", target: HTMLDivElement) => void;
+
+  // ---- ハンドラ / ツールバー
+  onAnyPointerDownCapture: (e: ReactPointerEvent) => void;
+  centerToolbarValue: CenterToolbarValue | null;
+  centerVisible: boolean;
+  handleBlockPointerDown: (
+    e: ReactPointerEvent<Element>,
+    blockId: string,
+    opts: { scale: number }
+  ) => void;
+
+  // ---- インライン編集
+  startEditing: (id: string, text: string) => void;
+  editingBlockId: string | null;
+  editingText: string;
+  setEditingText: (value: string) => void;
+  stopEditing: () => void;
+  cardRef: RefObject<HTMLDivElement | null>;
+  blockRefs: MutableRefObject<Record<string, HTMLDivElement | null>>;
+
+  // ---- Undo / Redo
+  undo: () => void;
+  redo: () => void;
+};

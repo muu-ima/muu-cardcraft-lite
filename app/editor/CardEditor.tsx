@@ -2,15 +2,8 @@
 
 import React, { useRef, useState } from "react";
 import ModalPreview from "@/app/components/ModalPreview";
-import Toolbar from "@/app/components/Toolbar";
 import CardSurface from "@/app/components/CardSurface";
-import ToolPanel from "@/app/components/ToolPanel";
-import CanvasArea from "@/app/components/editor/CanvasArea";
-import BottomSheet from "@/app/components/editor/BottomSheet";
-import EditorCanvas from "@/app/components/editor/EditorCanvas";
-import MobileHeader from "@/app/components/editor/MobileHeader";
 import ExportSurface from "@/app/components/ExportSurface";
-import CenterToolbar from "@/app/components/editor/CenterToolbar";
 import InlineTextEditor from "@/app/components/editor/InlineTextEditor";
 
 import { useScaleToFit } from "@/hooks/useScaleToFit";
@@ -21,7 +14,8 @@ import { type DesignKey } from "@/shared/design";
 import type { TabKey } from "@/shared/editor";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
 import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
-import { CardEditorMobileLayout } from "./CardEditorMobileLayout";
+import { CardEditorMobileLayout } from "@/app/editor/CardEditorMobileLayout";
+import { CardEditorDesktopLayout } from "@/app/editor/CardEditorDesktopLayout";
 import type {
   CardEditorMobileProps,
   EditorStateForLayout,
@@ -296,156 +290,44 @@ export default function CardEditor() {
       {/* ---------- Mobile / Tablet (<xl) ---------- */}
       {/* ここはあとで CardEditorMobileLayout.tsx に移せるブロック */}
       <div className="xl:hidden">
-        {/* Mobile Header */}
-        <MobileHeader
-          isPreview={state.isPreview}
-          onTogglePreview={actions.togglePreview}
-          onUndo={undo}
-          onRedo={redo}
-          onHome={() => {
-            actions.setActiveTab(null);
-            actions.setIsPreview(false);
-            actions.setSide("front");
-          }}
-        />
-
-        {/* BottomSheet */}
-        <BottomSheet
-          snap={sheetSnap}
-          onChangeSnap={setSheetSnap}
-          onClose={closeSheet}
-          title={sheetTitle}
-        >
-          <ToolPanel
-            variant="sheet"
-            open={sheetSnap !== "collapsed"}
-            onClose={closeSheet}
-            activeTab={state.activeTab}
-            activeBlockId={state.activeBlockId}
-            side={state.side}
-            onChangeSide={actions.setSide}
-            blocks={getBlocksFor(state.side)}
-            onAddBlock={addBlock}
-            isPreview={state.isPreview}
-            onChangeText={onChangeText}
-            onCommitText={onCommitText}
-            onChangeFont={updateFont}
-            onBumpFontSize={bumpFontSize}
-            design={design}
-            onChangeDesign={setDesign}
-            fontFamily="default"
-            onDownload={(format) => {
-              if (!exportRef.current) return;
-              downloadImage(format, exportRef.current);
-            }}
-          />
-        </BottomSheet>
-
         {/* ---------- Mobile / Tablet (<xl) ---------- */}
         <CardEditorMobileLayout {...mobileProps} />
-
       </div>
 
       {/* ---------- Desktop (xl+) ---------- */}
-      {/* ここはあとで CardEditorDesktopLayout.tsx に移せるブロック */}
-      <div className="hidden xl:flex w-full h-[calc(100dvh-56px)]">
-        {/* 左：縦ツール（幅として参加） */}
-        <aside className="w-14 shrink-0 border-r bg-white/70 backdrop-blur h-full min-h-0">
-          <Toolbar
-            activeTab={state.activeTab}
-            isPreview={state.isPreview}
-            onChange={openTab}
-            onUndo={undo}
-            onRedo={redo}
-            onTogglePreview={actions.togglePreview}
-          />
-        </aside>
-
-        {/* 左：詳細パネル（開いてる時だけ幅を取る） */}
-        {state.activeTab !== null && (
-          <aside className="w-[416px] shrink-0 border-r bg-white">
-            <ToolPanel
-              variant="desktop"
-              open={true}
-              onClose={() => actions.setActiveTab(null)}
-              activeTab={state.activeTab}
-              activeBlockId={state.activeBlockId}
-              side={state.side}
-              isPreview={state.isPreview}
-              onChangeSide={actions.setSide}
-              blocks={getBlocksFor(state.side)}
-              onAddBlock={addBlock}
-              onChangeText={onChangeText}
-              onCommitText={onCommitText}
-              onBumpFontSize={bumpFontSize}
-              onChangeFont={updateFont}
-              design={design}
-              onChangeDesign={setDesign}
-              fontFamily="default"
-              onDownload={(format) => {
-                if (!exportRef.current) return;
-                downloadImage(format, exportRef.current);
-              }}
-            />
-          </aside>
-        )}
-
-        {/* 右：キャンバス領域 */}
-        <main className="flex-1 min-w-0 min-h-0">
-          <CanvasArea innerRef={canvasAreaRef}>
-            <div onPointerDownCapture={onAnyPointerDownCapture}>
-              {/* Desktopは常時表示でOK */}
-              <div ref={centerWrapRef} className="relative z-50">
-                <CenterToolbar
-                  value={centerToolbarValue}
-                  activeTab={state.activeTab}
-                  onOpenTab={openTab}
-                  onChangeFontSize={actions.onChangeFontSize}
-                  onToggleBold={actions.onToggleBold}
-                  onChangeAlign={actions.onChangeAlign}
-                  side={state.side}
-                  onChangeSide={actions.setSide}
-                  showGuides={state.showGuides}
-                  onToggleGuides={() => actions.setShowGuides((v) => !v)}
-                  disabled={state.isPreview || state.side !== "front"}
-                  visible={centerVisible}
-                />
-              </div>
-
-              <div className="flex w-full justify-center">
-                {/* ✅ ここが「縮む箱」= 実効幅を測る対象 */}
-                <div ref={scaleWrapRefDesktop} className="w-full min-w-0 px-3">
-                  <EditorCanvas
-                    blocks={getBlocksFor(state.side)}
-                    design={design}
-                    scale={scaleDesktop}
-                    isPreview={state.isPreview}
-                    showGuides={state.showGuides}
-                    onPointerDown={
-                      state.side === "front"
-                        ? handleBlockPointerDown
-                        : undefined
-                    }
-                    onBlockDoubleClick={(id) => {
-                      const b = editableBlocks.find((block) => block.id === id);
-                      if (!b || b.type !== "text") return;
-                      startEditing(id, b.text);
-                    }}
-                    editingBlockId={editingBlockId}
-                    editingText={editingText}
-                    onChangeEditingText={setEditingText}
-                    onStopEditing={stopEditing}
-                    onCommitText={commitText}
-                    activeBlockId={state.activeBlockId}
-                    cardRef={cardRef}
-                    blockRefs={blockRefs}
-                  />
-                </div>
-              </div>
-            </div>
-          </CanvasArea>
-        </main>
-      </div>
+      <CardEditorDesktopLayout
+        state={state}
+        actions={actions}
+        openTab={openTab}
+        canvasAreaRef={canvasAreaRef}
+        centerWrapRef={centerWrapRef}
+        scaleWrapRefDesktop={scaleWrapRefDesktop}
+        scaleDesktop={scaleDesktop}
+        getBlocksFor={getBlocksFor}
+        editableBlocks={editableBlocks}
+        addBlock={addBlock}
+        onChangeText={onChangeText}
+        onCommitText={onCommitText}
+        updateFont={updateFont}
+        bumpFontSize={bumpFontSize}
+        design={design}
+        setDesign={setDesign}
+        exportRef={exportRef}
+        downloadImage={downloadImage}
+        onAnyPointerDownCapture={onAnyPointerDownCapture}
+        centerToolbarValue={centerToolbarValue}
+        centerVisible={centerVisible}
+        handleBlockPointerDown={handleBlockPointerDown}
+        startEditing={startEditing}
+        editingBlockId={editingBlockId}
+        editingText={editingText}
+        setEditingText={setEditingText}
+        stopEditing={stopEditing}
+        cardRef={cardRef}
+        blockRefs={blockRefs}
+        undo={undo}
+        redo={redo}
+      />
 
       {/* ---------- Preview / Export / Inline Editor ---------- */}
       {/* ここは「出力モデル」担当 */}
