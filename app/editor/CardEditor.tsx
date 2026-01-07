@@ -7,7 +7,6 @@ import CardSurface from "@/app/components/CardSurface";
 import ToolPanel from "@/app/components/ToolPanel";
 import CanvasArea from "@/app/components/editor/CanvasArea";
 import BottomSheet from "@/app/components/editor/BottomSheet";
-import MobileBottomBar from "@/app/components/editor/MobileBottomBar";
 import EditorCanvas from "@/app/components/editor/EditorCanvas";
 import MobileHeader from "@/app/components/editor/MobileHeader";
 import ExportSurface from "@/app/components/ExportSurface";
@@ -22,19 +21,28 @@ import { type DesignKey } from "@/shared/design";
 import type { TabKey } from "@/shared/editor";
 import { CARD_FULL_DESIGNS } from "@/shared/cardDesigns";
 import { CARD_BASE_W, CARD_BASE_H } from "@/shared/print";
+import { CardEditorMobileLayout } from "./CardEditorMobileLayout";
+import type {
+  CardEditorMobileProps,
+  EditorStateForLayout,
+  EditorActionsForLayout,
+} from "./CardEditor.types";
 
 type Side = "front" | "back";
 
 type EditingState = { id: string; initialText: string } | null;
 
 export default function CardEditor() {
+  // =========================
+  // 🧠 1. コア状態 & ロジック
+  // =========================
   const [editing, setEditing] = useState<EditingState>(null);
   const [design, setDesign] = useState<DesignKey>("plain");
   const exportRef = useRef<HTMLDivElement | null>(null);
 
   // ✅ CanvasArea 自体の ref（スクロール/レイアウト用）
   const canvasAreaRef = useRef<HTMLDivElement | null>(null);
-
+  // scale（mobile / desktop）
   const { ref: scaleWrapRefMobile, scale: scaleMobile } = useScaleToFit(
     CARD_BASE_W,
     true
@@ -195,6 +203,88 @@ export default function CardEditor() {
   const centerVisible = selectors.centerVisible;
   const centerToolbarValue = selectors.centerToolbarValue;
 
+  // =========================
+  // 📦  レイアウト用に詰め替え
+  // =========================
+
+  // ① レイアウト用 state
+  const layoutState: EditorStateForLayout = {
+    activeTab: state.activeTab,
+    isPreview: state.isPreview,
+    side: state.side,
+    showGuides: state.showGuides,
+    activeBlockId: state.activeBlockId,
+  };
+
+  // ② レイアウト用 actions
+  const layoutActions: EditorActionsForLayout = {
+    setActiveTab: actions.setActiveTab,
+    setIsPreview: actions.setIsPreview,
+    setSide: actions.setSide,
+    togglePreview: actions.togglePreview,
+    onChangeFontSize: actions.onChangeFontSize,
+    onToggleBold: actions.onToggleBold,
+    onChangeAlign: actions.onChangeAlign,
+    setShowGuides: actions.setShowGuides,
+  };
+
+  // ③ Mobile レイアウトに渡す全部入り props
+  const mobileProps: CardEditorMobileProps = {
+    // ---- 状態 & アクション
+    state: layoutState,
+    actions: layoutActions,
+
+    // ---- シート
+    sheetTitle,
+    sheetSnap,
+    setSheetSnap,
+    closeSheet,
+    openTab,
+
+    // ---- レイアウト / スケール
+    canvasAreaRef,
+    centerWrapRef,
+    scaleWrapRefMobile,
+    scaleMobile,
+
+    // ---- blocks / デザイン
+    getBlocksFor,
+    editableBlocks,
+    addBlock,
+    onChangeText,
+    onCommitText,
+    updateFont,
+    bumpFontSize,
+    design,
+    setDesign,
+
+    // ---- export
+    exportRef,
+    downloadImage,
+
+    // ---- ハンドラ / ツールバー
+    onAnyPointerDownCapture,
+    centerToolbarValue,
+    centerVisible,
+    handleBlockPointerDown,
+
+    // ---- インライン編集
+    startEditing,
+    editingBlockId,
+    editingText,
+    setEditingText,
+    stopEditing,
+    cardRef,
+    blockRefs,
+
+    // ---- Undo / Redo
+    undo,
+    redo,
+  };
+
+  // =========================
+  // 🎨 2. レイアウト描画
+  // =========================
   return (
     <div
       className="relative h-dvh w-full"
@@ -203,7 +293,8 @@ export default function CardEditor() {
           "linear-gradient(135deg, #eef3f8 0%, #f7eef2 55%, #eef4ff 100%)",
       }}
     >
-      {/* ================= Mobile / Tablet (<xl) ================= */}
+      {/* ---------- Mobile / Tablet (<xl) ---------- */}
+      {/* ここはあとで CardEditorMobileLayout.tsx に移せるブロック */}
       <div className="xl:hidden">
         {/* Mobile Header */}
         <MobileHeader
@@ -250,71 +341,13 @@ export default function CardEditor() {
           />
         </BottomSheet>
 
-        {/* Canvas (mobile/tablet) */}
-        <div className="pt-14">
-          <CanvasArea innerRef={canvasAreaRef}>
-            <div onPointerDownCapture={onAnyPointerDownCapture}>
-              {/* CenterToolbar: md以上で表示（モバイルは別UI運用） */}
-              <div
-                ref={centerWrapRef}
-                className="hidden md:block relative z-50"
-              >
-                <CenterToolbar
-                  value={centerToolbarValue}
-                  activeTab={state.activeTab}
-                  onOpenTab={openTab}
-                  onChangeFontSize={actions.onChangeFontSize}
-                  onToggleBold={actions.onToggleBold}
-                  onChangeAlign={actions.onChangeAlign}
-                  side={state.side}
-                  onChangeSide={actions.setSide}
-                  showGuides={state.showGuides}
-                  onToggleGuides={() => actions.setShowGuides((v) => !v)}
-                  disabled={state.isPreview || state.side !== "front"}
-                  visible={centerVisible}
-                />
-              </div>
+        {/* ---------- Mobile / Tablet (<xl) ---------- */}
+        <CardEditorMobileLayout {...mobileProps} />
 
-              <div className="flex w-full justify-center">
-                <div ref={scaleWrapRefMobile} className="w-full min-w-0 px-3">
-                  <EditorCanvas
-                    blocks={getBlocksFor(state.side)}
-                    design={design}
-                    scale={scaleMobile}
-                    isPreview={state.isPreview}
-                    showGuides={state.showGuides}
-                    onPointerDown={
-                      state.side === "front"
-                        ? handleBlockPointerDown
-                        : undefined
-                    }
-                    onBlockDoubleClick={(id) => {
-                      const b = editableBlocks.find((block) => block.id === id);
-                      if (!b || b.type !== "text") return;
-                      startEditing(id, b.text);
-                    }}
-                    editingBlockId={editingBlockId}
-                    editingText={editingText}
-                    onChangeEditingText={setEditingText}
-                    onStopEditing={stopEditing}
-                    onCommitText={commitText}
-                    activeBlockId={state.activeBlockId}
-                    cardRef={cardRef}
-                    blockRefs={blockRefs}
-                  />
-                </div>
-              </div>
-            </div>
-          </CanvasArea>
-        </div>
-
-        {/* Mobile bottom bar */}
-        {!state.isPreview && (
-          <MobileBottomBar activeTab={state.activeTab} onChangeTab={openTab} />
-        )}
       </div>
 
-      {/* ================= Desktop (xl+) ================= */}
+      {/* ---------- Desktop (xl+) ---------- */}
+      {/* ここはあとで CardEditorDesktopLayout.tsx に移せるブロック */}
       <div className="hidden xl:flex w-full h-[calc(100dvh-56px)]">
         {/* 左：縦ツール（幅として参加） */}
         <aside className="w-14 shrink-0 border-r bg-white/70 backdrop-blur h-full min-h-0">
@@ -414,7 +447,9 @@ export default function CardEditor() {
         </main>
       </div>
 
-      {/* 共通：Preview / Export / Inline editor */}
+      {/* ---------- Preview / Export / Inline Editor ---------- */}
+      {/* ここは「出力モデル」担当 */}
+      {/* ModalPreview / ExportSurface / InlineTextEditor はそのまま */}
       <ModalPreview
         open={state.isPreview}
         onClose={() => actions.setIsPreview(false)}
