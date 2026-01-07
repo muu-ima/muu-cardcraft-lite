@@ -10,6 +10,7 @@ import TextPanel from "@/app/components/panels/TextPanel";
 import FontPanel from "@/app/components/panels/FontPanel";
 import DesignPanel from "@/app/components/panels/DedignPanel";
 import ExportPanel from "@/app/components/panels/ExportPanel";
+import type { FontSizeDelta } from "@/shared/fonts";
 
 type Side = "front" | "back";
 
@@ -28,7 +29,7 @@ type Props = {
   isPreview: boolean;
   onChangeText: (id: string, value: string) => void;
   onCommitText: (id: string, value: string) => void;
-  onBumpFontSize?: (id: string, delta: number) => void;
+  onBumpFontSize?: (id: string, delta: FontSizeDelta) => void;
 
   onChangeFont: (id: string, fontKey: FontKey) => void;
 

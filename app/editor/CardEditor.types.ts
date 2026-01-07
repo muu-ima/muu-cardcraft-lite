@@ -9,7 +9,7 @@ import type {
 import type { TabKey } from "@/shared/editor";
 import type { DesignKey } from "@/shared/design";
 import type { Block } from "@/shared/blocks";
-import type { FontKey } from "@/shared/fonts";
+import type { FontKey, FontSizeDelta } from "@/shared/fonts";
 
 // CenterToolbar 内で宣言している align と同じにしておく
 export type Align = "left" | "center" | "right";
@@ -62,7 +62,7 @@ export type CardEditorMobileProps = {
   onChangeText: (id: string, value: string) => void;
   onCommitText: (id: string, value: string) => void;
   updateFont: (id: string, fontKey: FontKey) => void;
-  bumpFontSize: (id: string, delta: number) => void;
+  bumpFontSize: (id: string, delta: FontSizeDelta) => void;
   design: DesignKey;
   setDesign: (d: DesignKey) => void;
 
@@ -113,7 +113,7 @@ export type CardEditorDesktopProps = {
   onChangeText: (id: string, value: string) => void;
   onCommitText: (id: string, value: string) => void;
   updateFont: (id: string, fontKey: FontKey) => void;
-  bumpFontSize: (id: string, delta: number) => void;
+  bumpFontSize: (id: string, delta: FontSizeDelta) => void;
   design: DesignKey;
   setDesign: (d: DesignKey) => void;
 
