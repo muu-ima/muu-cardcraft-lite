@@ -287,48 +287,47 @@ export default function CardEditor() {
           "linear-gradient(135deg, #eef3f8 0%, #f7eef2 55%, #eef4ff 100%)",
       }}
     >
-      {/* ---------- Mobile / Tablet (<xl) ---------- */}
-      {/* ここはあとで CardEditorMobileLayout.tsx に移せるブロック */}
-      <div className="xl:hidden">
-        {/* ---------- Mobile / Tablet (<xl) ---------- */}
+      {/* ---------- Mobile (<768px) ---------- */}
+      <div className="md:hidden">
         <CardEditorMobileLayout {...mobileProps} />
       </div>
 
-      {/* ---------- Desktop (xl+) ---------- */}
-      <CardEditorDesktopLayout
-        state={state}
-        actions={actions}
-        openTab={openTab}
-        canvasAreaRef={canvasAreaRef}
-        centerWrapRef={centerWrapRef}
-        scaleWrapRefDesktop={scaleWrapRefDesktop}
-        scaleDesktop={scaleDesktop}
-        getBlocksFor={getBlocksFor}
-        editableBlocks={editableBlocks}
-        addBlock={addBlock}
-        onChangeText={onChangeText}
-        onCommitText={onCommitText}
-        updateFont={updateFont}
-        bumpFontSize={bumpFontSize}
-        design={design}
-        setDesign={setDesign}
-        exportRef={exportRef}
-        downloadImage={downloadImage}
-        onAnyPointerDownCapture={onAnyPointerDownCapture}
-        centerToolbarValue={centerToolbarValue}
-        centerVisible={centerVisible}
-        handleBlockPointerDown={handleBlockPointerDown}
-        startEditing={startEditing}
-        editingBlockId={editingBlockId}
-        editingText={editingText}
-        setEditingText={setEditingText}
-        stopEditing={stopEditing}
-        cardRef={cardRef}
-        blockRefs={blockRefs}
-        undo={undo}
-        redo={redo}
-      />
-
+      {/* ---------- Desktop / Tablet (>=768px) ---------- */}
+      <div className="hidden md:block">
+        <CardEditorDesktopLayout
+          state={state}
+          actions={actions}
+          openTab={openTab}
+          canvasAreaRef={canvasAreaRef}
+          centerWrapRef={centerWrapRef}
+          scaleWrapRefDesktop={scaleWrapRefDesktop}
+          scaleDesktop={scaleDesktop}
+          getBlocksFor={getBlocksFor}
+          editableBlocks={editableBlocks}
+          addBlock={addBlock}
+          onChangeText={onChangeText}
+          onCommitText={onCommitText}
+          updateFont={updateFont}
+          bumpFontSize={bumpFontSize}
+          design={design}
+          setDesign={setDesign}
+          exportRef={exportRef}
+          downloadImage={downloadImage}
+          onAnyPointerDownCapture={onAnyPointerDownCapture}
+          centerToolbarValue={centerToolbarValue}
+          centerVisible={centerVisible}
+          handleBlockPointerDown={handleBlockPointerDown}
+          startEditing={startEditing}
+          editingBlockId={editingBlockId}
+          editingText={editingText}
+          setEditingText={setEditingText}
+          stopEditing={stopEditing}
+          cardRef={cardRef}
+          blockRefs={blockRefs}
+          undo={undo}
+          redo={redo}
+        />
+      </div>
       {/* ---------- Preview / Export / Inline Editor ---------- */}
       {/* ここは「出力モデル」担当 */}
       {/* ModalPreview / ExportSurface / InlineTextEditor はそのまま */}
@@ -365,13 +364,11 @@ export default function CardEditor() {
           </div>
         )}
       </ModalPreview>
-
       <ExportSurface
         ref={exportRef}
         blocks={getBlocksFor(state.side)}
         design={design}
       />
-
       {editing && (
         <InlineTextEditor
           targetEl={blockRefs.current[editing.id]}
